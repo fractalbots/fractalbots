@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROBOTECH STORE FRACTAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ============================================================
+   ROBOTECH STORE FRACTAL — v3 ULTIMATE
+   ============================================================ */
+
+/* ── LIGHT MODE ── */
+:root {
+  --bg:#f0f4ff; --bg2:#e5eaf8; --surface:#ffffff; --surface2:#f8faff;
+  --cyan:#1d6ef5; --cyan2:#1558d6; --green:#16a34a; --orange:#e06020;
+  --purple:#8b5cf6; --promo:#dc2626; --promo-glow:rgba(220,38,38,.22);
+  --glass:rgba(29,110,245,.06); --glass-border:rgba(29,110,245,.18);
+  --text:#1e2a4a; --text-bright:#0a1628; --muted:#64748b;
+  --nav-bg:rgba(240,244,255,.97); --card-bg:rgba(255,255,255,.88);
+  --glow-cyan:rgba(29,110,245,.22); --glow-green:rgba(22,163,74,.22);
+  --glow-orange:rgba(224,96,32,.22); --hero-grid:rgba(29,110,245,.08);
+  --scanline:none; --shadow:0 4px 20px rgba(29,110,245,.08);
+  --shadow-hover:0 16px 40px rgba(29,110,245,.14);
+  --notif-bg:#ffffff; --notif-border:rgba(29,110,245,.25);
+}
+
+/* ── DARK MODE ── */
+body.dark-mode {
+  --bg:#02020a; --bg2:#070712; --surface:#090915; --surface2:#0d0d1f;
+  --cyan:#00e5ff; --cyan2:#00b8d4; --green:#39ff14; --orange:#ff6b2b;
+  --purple:#a855f7; --promo:#ff2222; --promo-glow:rgba(255,34,34,.32);
+  --glass:rgba(0,229,255,.04); --glass-border:rgba(0,229,255,.15);
+  --text:#e2e8f0; --text-bright:#ffffff; --muted:#64748b;
+  --nav-bg:rgba(2,2,10,.92); --card-bg:rgba(0,229,255,.04);
+  --glow-cyan:rgba(0,229,255,.38); --glow-green:rgba(57,255,20,.28);
+  --glow-orange:rgba(255,107,43,.28); --hero-grid:rgba(0,229,255,.06);
+  --scanline:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,.013) 2px,rgba(0,229,255,.013) 4px);
+  --shadow:none; --shadow-hover:none;
+  --notif-bg:#0d0d1f; --notif-border:rgba(0,229,255,.3);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;overflow-x:hidden;transition:background .4s,color .3s}
+body.dark-mode{cursor:crosshair}
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0;transition:opacity .5s}
+body.dark-mode #bg-canvas{opacity:1}
+#root{position:relative;z-index:1}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--cyan);border-radius:2px}
+body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:var(--scanline);pointer-events:none;z-index:9999;animation:scanMove 8s linear infinite}
+@keyframes scanMove{0%{background-position:0 0}100%{background-position:0 100px}}
+
+/* ── NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:70px;background:var(--nav-bg);backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);transition:background .4s;box-shadow:var(--shadow)}
+.nav-logo{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:900;color:var(--cyan);letter-spacing:.15em;text-shadow:0 0 20px var(--glow-cyan);display:flex;align-items:center;gap:10px;cursor:pointer}
+.logo-icon{width:36px;height:36px;border:2px solid var(--cyan);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1rem;animation:logoPulse 2s ease-in-out infinite;box-shadow:0 0 15px var(--glow-cyan)}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 15px var(--glow-cyan)}50%{box-shadow:0 0 30px var(--glow-cyan)}}
+.nav-links{display:flex;gap:20px;align-items:center}
+.nav-link{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:.83rem;color:var(--muted);text-decoration:none;letter-spacing:.1em;text-transform:uppercase;transition:all .3s;cursor:pointer;background:none;border:none}
+.nav-link:hover,.nav-link.active{color:var(--cyan);text-shadow:0 0 10px var(--glow-cyan)}
+.nav-link.services-link{color:var(--orange)}
+.nav-link.services-link:hover{opacity:.8;text-shadow:0 0 10px var(--glow-orange)}
+.nav-right{display:flex;gap:8px;align-items:center}
+
+.theme-toggle{display:flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);padding:7px 13px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:.1em;transition:all .3s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));white-space:nowrap}
+.theme-toggle:hover{border-color:var(--cyan);color:var(--cyan)}
+
+.cart-btn{position:relative;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);padding:8px 15px;cursor:pointer;transition:all .3s;font-size:1.05rem;display:flex;align-items:center;gap:7px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.cart-btn:hover{border-color:var(--cyan);background:rgba(29,110,245,.1)}
+body.dark-mode .cart-btn:hover{background:rgba(0,229,255,.1)}
+.cart-badge{position:absolute;top:-6px;right:-6px;background:var(--orange);color:#fff;border-radius:50%;width:20px;height:20px;font-size:.65rem;font-weight:900;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.cart-count-label{font-family:'Share Tech Mono',monospace;font-size:.73rem;color:var(--cyan)}
+
+.btn-login{background:transparent;border:1px solid var(--cyan);color:var(--cyan);padding:8px 18px;font-family:'Orbitron',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.btn-login::before{content:'';position:absolute;inset:0;background:var(--cyan);transform:translateX(-100%);transition:transform .3s}
+.btn-login:hover::before{transform:translateX(0)}
+.btn-login:hover{color:var(--surface)}
+.btn-login .admin-icon{display:inline;font-size:1rem}
+.btn-login .admin-label{display:inline}
+
+/* ── LOGIN CARD (contacto section) ── */
+.login-contact-card{background:var(--card-bg);border:1px solid var(--glass-border);padding:28px;position:relative;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));box-shadow:var(--shadow);text-align:center;transition:all .3s}
+.login-contact-card:hover{border-color:var(--cyan);box-shadow:0 8px 30px var(--glow-cyan)}
+.login-contact-card::after{content:'';position:absolute;top:0;right:0;width:14px;height:14px;background:var(--cyan);clip-path:polygon(0 0,100% 0,100% 100%);opacity:.5}
+.btn-login-card{width:100%;background:transparent;border:1px solid var(--cyan);color:var(--cyan);padding:12px 20px;font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-login-card::before{content:'';position:absolute;inset:0;background:var(--cyan);transform:translateX(-100%);transition:transform .3s}
+.btn-login-card:hover::before{transform:translateX(0)}
+.btn-login-card:hover{color:var(--surface)}
+.btn-login-card span{position:relative;z-index:1}
+
+/* ── NOTIFICATION TOAST ── */
+.notif-container{position:fixed;top:80px;right:20px;z-index:5000;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.notif-toast{
+  background:var(--notif-bg);border:1px solid var(--notif-border);
+  padding:14px 18px;min-width:300px;max-width:360px;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
+  animation:toastIn .35s cubic-bezier(.16,1,.3,1);
+  pointer-events:all;
+  box-shadow:0 8px 32px rgba(0,0,0,.15),0 0 0 1px var(--notif-border);
+}
+.notif-toast.order{border-color:rgba(224,96,32,.5);background:rgba(224,96,32,.06)}
+body.dark-mode .notif-toast.order{background:rgba(255,107,43,.08)}
+.notif-toast.exit{animation:toastOut .3s forwards}
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{from{transform:translateX(0);opacity:1}to{transform:translateX(110%);opacity:0}}
+.notif-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.notif-title{font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:900;color:var(--orange);letter-spacing:.08em}
+.notif-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1;padding:0;pointer-events:all}
+.notif-close:hover{color:var(--cyan)}
+.notif-body{font-size:.85rem;color:var(--text);line-height:1.5}
+.notif-body strong{color:var(--text-bright)}
+.notif-meta{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:6px}
+.notif-ping{display:inline-block;width:7px;height:7px;background:var(--orange);border-radius:50%;margin-right:6px;animation:ping 1s ease-in-out infinite}
+@keyframes ping{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.7}}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 40px 60px;position:relative;overflow:hidden}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(var(--hero-grid) 1px,transparent 1px),linear-gradient(90deg,var(--hero-grid) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%)}
+body:not(.dark-mode) .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(29,110,245,.07) 0%,transparent 70%);pointer-events:none}
+.hero-content{text-align:center;max-width:900px;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--glass-border);padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--cyan);letter-spacing:.2em;margin-bottom:30px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.badge-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hero-title{font-family:'Orbitron',sans-serif;font-size:clamp(2.2rem,6vw,5rem);font-weight:900;line-height:1.05;color:var(--text-bright);margin-bottom:8px}
+.hero-title span.glow{color:var(--cyan);text-shadow:0 0 30px var(--glow-cyan)}
+.hero-title span.fractal{display:block;font-size:.5em;letter-spacing:.5em;color:var(--orange);text-shadow:0 0 20px var(--glow-orange);margin-top:4px}
+.hero-sub{font-size:1.05rem;color:var(--muted);max-width:560px;margin:24px auto 40px;line-height:1.7}
+.hero-sub strong{color:var(--cyan);font-weight:600}
+.hero-cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--cyan);color:#fff;border:none;padding:14px 32px;font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.12em;cursor:pointer;transition:all .3s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));box-shadow:0 0 20px var(--glow-cyan)}
+.btn-primary:hover{opacity:.88;box-shadow:0 0 40px var(--glow-cyan);transform:translateY(-2px)}
+.btn-services{background:transparent;color:var(--orange);border:1px solid var(--orange);padding:14px 32px;font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.12em;cursor:pointer;transition:all .3s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.btn-services:hover{background:var(--orange);color:#fff;box-shadow:0 0 30px var(--glow-orange);transform:translateY(-2px)}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--glass-border);padding:14px 32px;font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.1em;cursor:pointer;transition:all .3s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.btn-secondary:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* ── STATS ── */
+.stats-bar{display:flex;justify-content:center;padding:0 40px;border-top:1px solid var(--glass-border);border-bottom:1px solid var(--glass-border);background:var(--glass)}
+.stat-item{flex:1;max-width:200px;padding:24px 20px;text-align:center;border-right:1px solid var(--glass-border)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--cyan);text-shadow:0 0 20px var(--glow-cyan);display:block}
+.stat-label{font-size:.73rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+
+/* ── SECTIONS ── */
+.section{padding:80px 40px;max-width:1400px;margin:0 auto}
+.section-header{margin-bottom:50px}
+.section-tag{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--cyan);letter-spacing:.25em;text-transform:uppercase;margin-bottom:12px;display:block}
+.section-tag::before{content:'// ';opacity:.5}
+.section-title{font-family:'Orbitron',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;color:var(--text-bright);line-height:1.1}
+.section-title em{font-style:normal;color:var(--cyan)}
+
+/* ── CATEGORY CAROUSEL (mobile) ── */
+.cat-scroll-wrap{position:relative;overflow:hidden;margin-bottom:36px}
+.categories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+@media(max-width:768px){
+  .categories-grid{display:flex;overflow-x:auto;gap:8px;padding-bottom:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .categories-grid::-webkit-scrollbar{height:2px}
+  .categories-grid::-webkit-scrollbar-thumb{background:var(--cyan)}
+  .cat-card{min-width:110px;scroll-snap-align:start;flex-shrink:0}
+}
+.cat-card{background:var(--card-bg);border:1px solid var(--glass-border);padding:20px 14px;text-align:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));box-shadow:var(--shadow)}
+.cat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(29,110,245,.08),transparent);opacity:0;transition:.3s}
+.cat-card:hover{border-color:var(--cyan);transform:translateY(-4px);box-shadow:0 8px 30px var(--glow-cyan)}
+.cat-card:hover::before,.cat-card.active::before{opacity:1}
+.cat-card.active{border-color:var(--cyan);background:rgba(29,110,245,.06)}
+body.dark-mode .cat-card.active{background:rgba(0,229,255,.08)}
+.cat-icon{font-size:1.7rem;margin-bottom:8px;display:block}
+.cat-name{font-family:'Rajdhani',sans-serif;font-size:.78rem;font-weight:700;color:var(--text);letter-spacing:.05em;text-transform:uppercase}
+
+/* ── SEARCH BAR ── */
+.search-wrap{position:relative;max-width:400px;margin-bottom:24px}
+.search-wrap input{width:100%;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);padding:12px 42px 12px 16px;font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none;transition:.3s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.search-wrap input:focus{border-color:var(--cyan);box-shadow:0 0 15px var(--glow-cyan)}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem;pointer-events:none}
+.search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);cursor:pointer;background:none;border:none;font-size:.9rem;transition:.2s}
+.search-clear:hover{color:var(--cyan)}
+
+/* ── PROMO FILTER PILL ── */
+.filter-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.filter-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:.08em;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);color:var(--muted);transition:all .3s;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
+.filter-pill:hover{border-color:var(--cyan);color:var(--cyan)}
+.filter-pill.active{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.4);color:var(--promo)}
+.filter-pill.active .pill-dot{background:var(--promo);animation:ping 1s ease-in-out infinite}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+
+/* ── PRODUCTS GRID ── */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+.product-card{background:var(--card-bg);border:1px solid var(--glass-border);overflow:hidden;transition:all .4s;position:relative;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));box-shadow:var(--shadow);cursor:pointer}
+.product-card::after{content:'';position:absolute;top:0;right:0;width:16px;height:16px;background:var(--cyan);clip-path:polygon(0 0,100% 0,100% 100%);opacity:.6}
+.product-card:hover{border-color:var(--cyan);transform:translateY(-6px);box-shadow:var(--shadow-hover),0 16px 40px var(--glow-cyan)}
+body.dark-mode .product-card:hover{box-shadow:0 16px 40px var(--glow-cyan)}
+.product-card.on-promo{border-color:rgba(220,38,38,.35)!important}
+.product-card.on-promo::after{background:var(--promo)!important}
+.product-card.on-promo:hover{border-color:var(--promo)!important;box-shadow:0 16px 40px var(--promo-glow)!important}
+.product-img{width:100%;height:195px;display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;overflow:hidden}
+body:not(.dark-mode) .product-img{background:linear-gradient(135deg,#e8eeff,#d5e0ff)}
+body.dark-mode .product-img{background:linear-gradient(135deg,#0a0a1a,#111130)}
+.product-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.product-card:hover .product-img img{transform:scale(1.04)}
+.product-img .placeholder{opacity:.3}
+.stock-badge{position:absolute;top:12px;left:12px;padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:.65rem;letter-spacing:.1em;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
+.stock-ok{background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.4);color:var(--green)}
+.stock-low{background:rgba(224,96,32,.15);border:1px solid rgba(224,96,32,.4);color:var(--orange)}
+.stock-out{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ef4444}
+.promo-badge{position:absolute;top:12px;right:12px;background:var(--promo);color:#fff;padding:4px 10px;font-family:'Share Tech Mono',monospace;font-size:.7rem;font-weight:900;z-index:2;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));animation:promoPulse 1.5s ease-in-out infinite;box-shadow:0 0 12px var(--promo-glow)}
+@keyframes promoPulse{0%,100%{box-shadow:0 0 8px var(--promo-glow)}50%{box-shadow:0 0 20px var(--promo-glow)}}
+.product-body{padding:18px}
+.product-cat{font-size:.68rem;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;font-weight:700;margin-bottom:5px}
+.product-name{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text-bright);line-height:1.3;margin-bottom:7px}
+.product-desc{font-size:.8rem;color:var(--muted);line-height:1.5;margin-bottom:14px;min-height:36px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.product-footer{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+.product-price{font-family:'Orbitron',sans-serif;font-size:1.35rem;font-weight:900;color:var(--cyan);text-shadow:0 0 15px var(--glow-cyan)}
+.product-price.promo-price{color:var(--promo);text-shadow:0 0 15px var(--promo-glow)}
+.price-currency{font-size:.68em;opacity:.7}
+.price-original{font-family:'Share Tech Mono',monospace;font-size:.78rem;color:var(--muted);text-decoration:line-through;display:block;margin-top:1px}
+.stock-info{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--muted);text-align:right}
+.stock-num{display:block;font-size:.95rem;color:var(--text);font-weight:700}
+.btn-add-cart{width:100%;background:rgba(29,110,245,.1);border:1px solid rgba(29,110,245,.3);color:var(--cyan);padding:10px;font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;gap:8px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+body.dark-mode .btn-add-cart{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.3)}
+.btn-add-cart:hover:not(:disabled){background:var(--cyan);color:#fff;box-shadow:0 0 20px var(--glow-cyan)}
+.btn-add-cart:disabled{opacity:.35;cursor:not-allowed}
+.btn-add-cart.added{background:rgba(22,163,74,.15);border-color:rgba(22,163,74,.4);color:var(--green)}
+.btn-add-cart.promo-cart{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.3);color:var(--promo)}
+.btn-add-cart.promo-cart:hover:not(:disabled){background:var(--promo);color:#fff;box-shadow:0 0 20px var(--promo-glow)}
+
+/* ── PRODUCT DETAIL MODAL ── */
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s}
+body.dark-mode .detail-overlay{background:rgba(0,0,0,.85)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.detail-modal{background:var(--surface);border:1px solid var(--glass-border);width:100%;max-width:760px;max-height:90vh;overflow-y:auto;position:relative;clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,24px 100%,0 calc(100% - 24px));animation:slideUp .3s;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+body.dark-mode .detail-modal{box-shadow:0 0 60px rgba(0,229,255,.06)}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.detail-modal.on-promo{border-color:rgba(220,38,38,.4)}
+.detail-img{width:100%;height:320px;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:5rem;position:relative}
+body:not(.dark-mode) .detail-img{background:linear-gradient(135deg,#dde8ff,#c8d8ff)}
+body.dark-mode .detail-img{background:linear-gradient(135deg,#060614,#0e0e28)}
+.detail-img img{width:100%;height:100%;object-fit:cover}
+.detail-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,var(--surface) 100%)}
+.detail-body{padding:30px 36px 36px}
+.detail-close{position:absolute;top:16px;right:18px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);cursor:pointer;font-size:1rem;width:34px;height:34px;display:flex;align-items:center;justify-content:center;transition:.2s;z-index:10}
+.detail-close:hover{border-color:var(--cyan);color:var(--cyan)}
+.detail-cat{font-size:.7rem;color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.detail-name{font-family:'Orbitron',sans-serif;font-size:clamp(1.1rem,3vw,1.6rem);font-weight:900;color:var(--text-bright);line-height:1.2;margin-bottom:14px}
+.detail-desc{font-size:.95rem;color:var(--muted);line-height:1.8;margin-bottom:24px}
+.detail-meta{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:28px;padding:18px;background:var(--glass);border:1px solid var(--glass-border);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.detail-meta-item label{display:block;font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.detail-meta-item .val{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--cyan)}
+.detail-meta-item .val.promo{color:var(--promo)}
+.detail-meta-item .val.original{color:var(--muted);text-decoration:line-through;font-size:.85rem}
+.detail-meta-item .val.stock-val{color:var(--green)}
+.detail-meta-item .val.stock-val.low{color:var(--orange)}
+.detail-meta-item .val.stock-val.out{color:#ef4444}
+.detail-actions{display:flex;gap:12px;flex-wrap:wrap}
+.detail-btn-add{flex:1;min-width:200px;background:var(--cyan);color:#fff;border:none;padding:14px;font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.12em;cursor:pointer;transition:.3s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));box-shadow:0 0 20px var(--glow-cyan)}
+.detail-btn-add:hover:not(:disabled){opacity:.88;box-shadow:0 0 40px var(--glow-cyan);transform:translateY(-2px)}
+.detail-btn-add:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.detail-btn-add.promo{background:var(--promo);box-shadow:0 0 20px var(--promo-glow)}
+.detail-btn-add.promo:hover:not(:disabled){box-shadow:0 0 40px var(--promo-glow)}
+.detail-btn-wa{flex:0;white-space:nowrap;background:#25D366;color:#fff;border:none;padding:14px 20px;font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:.3s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.detail-btn-wa:hover{opacity:.88;box-shadow:0 0 20px rgba(37,211,102,.35)}
+.detail-promo-banner{margin-bottom:20px;padding:12px 16px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.3);display:flex;align-items:center;gap:10px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.detail-promo-banner span{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--promo)}
+
+/* ── CART PANEL ── */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:1500;animation:fadeIn .2s}
+.cart-panel{position:fixed;right:0;top:0;bottom:0;width:400px;max-width:95vw;background:var(--surface);border-left:1px solid var(--glass-border);z-index:1501;animation:slideInRight .3s;overflow-y:auto;display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.12)}
+@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.cart-header{padding:22px;border-bottom:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between}
+.cart-title{font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:900;color:var(--text-bright)}
+.cart-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;transition:.2s}
+.cart-close:hover{color:var(--cyan)}
+.cart-items{flex:1;padding:18px;overflow-y:auto}
+.cart-empty{text-align:center;padding:60px 20px;color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.78rem}
+.cart-item{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--glass-border);align-items:center}
+.cart-item-img{width:52px;height:52px;background:var(--glass);border:1px solid var(--glass-border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.3rem;overflow:hidden}
+.cart-item-img img{width:100%;height:100%;object-fit:cover}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-name{font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;color:var(--text-bright);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cart-item-cat{font-size:.65rem;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase}
+.cart-item-price{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;margin-top:3px}
+.cart-item-price.normal{color:var(--cyan)}
+.cart-item-price.promo{color:var(--promo)}
+.cart-qty{display:flex;align-items:center;gap:6px}
+.qty-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--cyan);width:24px;height:24px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:.2s}
+.qty-btn:hover{background:rgba(29,110,245,.15)}
+.qty-val{font-family:'Share Tech Mono',monospace;font-size:.88rem;color:var(--text);min-width:18px;text-align:center}
+.cart-item-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;transition:.2s;padding:4px}
+.cart-item-del:hover{color:#ef4444}
+.cart-footer{padding:18px;border-top:1px solid var(--glass-border)}
+.cart-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cart-total-label{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.cart-total-val{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;color:var(--cyan);text-shadow:0 0 20px var(--glow-cyan)}
+.btn-checkout{width:100%;background:var(--green);color:#fff;border:none;padding:14px;font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:900;letter-spacing:.12em;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;gap:10px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));box-shadow:0 0 25px var(--glow-green)}
+.btn-checkout:hover{opacity:.88;box-shadow:0 0 40px var(--glow-green);transform:translateY(-2px)}
+.btn-clear-cart{width:100%;margin-top:8px;background:transparent;border:1px solid rgba(239,68,68,.3);color:rgba(239,68,68,.7);padding:8px;font-family:'Share Tech Mono',monospace;font-size:.7rem;cursor:pointer;transition:.2s}
+.btn-clear-cart:hover{border-color:#ef4444;color:#ef4444}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s}
+body.dark-mode .modal-overlay{background:rgba(0,0,0,.85)}
+.modal{background:var(--surface);border:1px solid var(--glass-border);padding:38px;width:100%;max-width:500px;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));animation:slideUp .3s;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;width:30px;height:30px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.modal-close:hover{color:var(--cyan)}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:900;color:var(--text-bright);margin-bottom:5px}
+.modal-sub{font-size:.83rem;color:var(--muted);margin-bottom:26px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:.72rem;font-weight:700;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;font-family:'Share Tech Mono',monospace}
+.form-input{width:100%;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);padding:12px 16px;font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none;transition:.3s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.form-input:focus{border-color:var(--cyan);box-shadow:0 0 15px var(--glow-cyan)}
+.form-input::placeholder{color:var(--muted)}
+textarea.form-input{resize:vertical;min-height:78px}
+select.form-input{cursor:pointer}
+select.form-input option{background:var(--surface);color:var(--text)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.btn-submit{width:100%;background:var(--cyan);color:#fff;border:none;padding:14px;font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.12em;cursor:pointer;transition:.3s;margin-top:8px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.btn-submit:hover{opacity:.85;box-shadow:0 0 30px var(--glow-cyan)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.btn-whatsapp{width:100%;background:#25D366;color:#fff;border:none;padding:14px;font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:.3s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:10px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.btn-whatsapp:hover{background:#1ebe5c;box-shadow:0 0 25px rgba(37,211,102,.4)}
+.error-msg{color:#ef4444;font-size:.8rem;margin-top:8px;font-family:'Share Tech Mono',monospace}
+.order-summary{background:var(--glass);border:1px solid var(--glass-border);padding:14px;margin-bottom:18px}
+.order-summary-item{display:flex;justify-content:space-between;font-size:.83rem;color:var(--text);padding:4px 0;border-bottom:1px solid var(--glass-border)}
+.order-summary-item:last-child{border-bottom:none}
+.order-summary-total{display:flex;justify-content:space-between;font-family:'Orbitron',sans-serif;font-size:.95rem;color:var(--cyan);font-weight:700;margin-top:9px;padding-top:9px;border-top:1px solid var(--glass-border)}
+
+/* ── INFO / FOOTER ── */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.info-card{background:var(--card-bg);border:1px solid var(--glass-border);padding:28px;position:relative;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));box-shadow:var(--shadow)}
+.info-card-icon{font-size:1.9rem;margin-bottom:14px;display:block}
+.info-card-title{font-family:'Orbitron',sans-serif;font-size:.88rem;font-weight:700;color:var(--cyan);margin-bottom:9px;letter-spacing:.08em}
+.info-card-text{font-size:.88rem;color:var(--muted);line-height:1.7}
+.info-card-text strong{color:var(--text)}
+.tag-pill{display:inline-flex;align-items:center;gap:5px;background:var(--glass);border:1px solid var(--glass-border);padding:3px 10px;font-size:.75rem;color:var(--cyan);margin:3px 3px 0 0;font-family:'Share Tech Mono',monospace}
+footer{border-top:1px solid var(--glass-border);padding:40px;text-align:center;background:var(--glass)}
+.footer-logo{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--cyan);margin-bottom:10px;text-shadow:0 0 20px var(--glow-cyan)}
+.footer-text{font-size:.8rem;color:var(--muted)}
+
+/* ── ADMIN ── */
+.admin-panel{padding:100px 40px 60px;max-width:1400px;margin:0 auto}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:14px}
+.admin-title{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;color:var(--text-bright)}
+.admin-title span{color:var(--cyan)}
+.admin-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn-add{background:var(--orange);color:#fff;border:none;padding:10px 22px;font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:.3s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.btn-add:hover{opacity:.85;box-shadow:0 0 20px var(--glow-orange)}
+.btn-logout{background:transparent;color:var(--muted);border:1px solid var(--glass-border);padding:10px 18px;font-family:'Orbitron',sans-serif;font-size:.68rem;cursor:pointer;transition:.3s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.btn-logout:hover{color:#ef4444;border-color:#ef4444}
+.admin-tabs{display:flex;gap:0;margin-bottom:28px;border-bottom:1px solid var(--glass-border)}
+.admin-tab{padding:11px 26px;font-family:'Share Tech Mono',monospace;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);cursor:pointer;border:none;background:none;transition:.3s;border-bottom:2px solid transparent;margin-bottom:-1px}
+.admin-tab:hover{color:var(--text)}
+.admin-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.admin-tab.orders-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:28px}
+.dash-card{background:var(--card-bg);border:1px solid var(--glass-border);padding:22px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));box-shadow:var(--shadow)}
+.dash-card-label{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:7px}
+.dash-card-value{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;color:var(--cyan);text-shadow:0 0 15px var(--glow-cyan)}
+.dash-card-value.green{color:var(--green);text-shadow:0 0 15px var(--glow-green)}
+.dash-card-value.orange{color:var(--orange);text-shadow:0 0 15px var(--glow-orange)}
+.dash-card-value.promo-col{color:var(--promo);text-shadow:0 0 15px var(--promo-glow)}
+.dash-card-sub{font-size:.72rem;color:var(--muted);margin-top:5px}
+.admin-table-wrap{overflow-x:auto}
+.admin-table{width:100%;border-collapse:collapse}
+.admin-table th{font-family:'Share Tech Mono',monospace;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan);padding:11px 14px;text-align:left;border-bottom:1px solid var(--glass-border);white-space:nowrap;background:var(--glass)}
+.admin-table td{padding:12px 14px;font-size:.88rem;color:var(--text);border-bottom:1px solid var(--glass-border);vertical-align:middle}
+.admin-table tr:hover td{background:var(--glass)}
+.admin-table img{width:46px;height:46px;object-fit:cover;border:1px solid var(--glass-border)}
+.btn-edit{background:rgba(29,110,245,.1);border:1px solid rgba(29,110,245,.3);color:var(--cyan);padding:4px 10px;font-size:.68rem;cursor:pointer;transition:.2s;font-family:'Share Tech Mono',monospace}
+.btn-edit:hover{background:rgba(29,110,245,.2)}
+body.dark-mode .btn-edit{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.3)}
+.btn-delete{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:4px 10px;font-size:.68rem;cursor:pointer;transition:.2s;font-family:'Share Tech Mono',monospace;margin-left:5px}
+.btn-delete:hover{background:rgba(239,68,68,.2)}
+.btn-confirm{background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.4);color:var(--green);padding:4px 10px;font-size:.68rem;cursor:pointer;transition:.2s;font-family:'Share Tech Mono',monospace}
+.btn-reject{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:4px 10px;font-size:.68rem;cursor:pointer;transition:.2s;font-family:'Share Tech Mono',monospace;margin-left:5px}
+.btn-confirm:hover{background:rgba(22,163,74,.2)}
+.btn-reject:hover{background:rgba(239,68,68,.2)}
+.btn-promo-on{background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.4);color:var(--promo);padding:4px 9px;font-size:.65rem;cursor:pointer;transition:.2s;font-family:'Share Tech Mono',monospace;margin-left:5px;clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,4px 100%,0 calc(100% - 4px))}
+.btn-promo-off{background:rgba(100,116,139,.1);border:1px solid rgba(100,116,139,.3);color:var(--muted);padding:4px 9px;font-size:.65rem;cursor:pointer;transition:.2s;font-family:'Share Tech Mono',monospace;margin-left:5px;clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,4px 100%,0 calc(100% - 4px))}
+.btn-promo-on:hover{background:rgba(220,38,38,.22)}
+.btn-delete-order{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#ef4444;padding:4px 9px;font-size:.65rem;cursor:pointer;transition:.2s;font-family:'Share Tech Mono',monospace;margin-left:5px;clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,4px 100%,0 calc(100% - 4px))}
+.btn-delete-order:hover{background:rgba(239,68,68,.2)}
+.order-status{display:inline-block;padding:3px 9px;font-family:'Share Tech Mono',monospace;font-size:.65rem;letter-spacing:.08em;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
+.status-pending{background:rgba(224,96,32,.15);border:1px solid rgba(224,96,32,.4);color:var(--orange)}
+.status-confirmed{background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.4);color:var(--green)}
+.status-rejected{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ef4444}
+.restore-note{font-size:.6rem;color:var(--orange);font-family:'Share Tech Mono',monospace;margin-top:3px;display:block}
+.margin-chip{display:inline-block;padding:2px 7px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);color:var(--purple);font-family:'Share Tech Mono',monospace;font-size:.7rem}
+.promo-chip{display:inline-block;padding:2px 7px;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.35);color:var(--promo);font-family:'Share Tech Mono',monospace;font-size:.65rem;font-weight:900;animation:promoPulse 1.5s ease-in-out infinite}
+.tag-pill-sm{display:inline-block;padding:2px 8px;background:var(--glass);border:1px solid var(--glass-border);color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:.68rem}
+.margin-preview{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);padding:10px 14px;font-family:'Orbitron',monospace;font-size:1rem;color:var(--purple);text-align:center;margin-top:7px;font-weight:900}
+.img-preview{width:100%;max-height:140px;object-fit:contain;border:1px solid var(--glass-border);background:var(--glass);margin-top:7px;display:none}
+.img-preview.show{display:block}
+.file-input-label{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--glass);border:1px dashed rgba(29,110,245,.3);color:var(--muted);padding:13px 16px;cursor:pointer;transition:.3s;font-family:'Share Tech Mono',monospace;font-size:.78rem}
+body.dark-mode .file-input-label{border-color:rgba(0,229,255,.3)}
+.file-input-label:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(29,110,245,.06)}
+input[type='file']{display:none}
+.promo-section{border:1px solid rgba(220,38,38,.22);background:rgba(220,38,38,.03);padding:14px;margin-top:4px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.promo-section-title{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--promo);letter-spacing:.15em;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+.toggle-switch{position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0}
+.toggle-switch input{display:none}
+.toggle-track{position:absolute;inset:0;border-radius:12px;background:var(--glass);border:1px solid var(--glass-border);transition:.3s}
+.toggle-switch input:checked~.toggle-track{background:rgba(220,38,38,.28);border-color:var(--promo)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:.3s}
+.toggle-switch input:checked~.toggle-thumb{left:23px;background:var(--promo);box-shadow:0 0 8px var(--promo-glow)}
+.toggle-row{display:flex;align-items:center;gap:12px;margin-bottom:0}
+.toggle-label{font-family:'Rajdhani',sans-serif;font-size:.9rem;color:var(--text);font-weight:600}
+.setup-banner{background:rgba(224,96,32,.08);border:1px solid rgba(224,96,32,.3);padding:14px 22px;margin-bottom:22px;font-family:'Share Tech Mono',monospace;font-size:.78rem;color:var(--orange);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.promo-modal-info{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2);padding:11px 14px;margin-bottom:14px;font-family:'Share Tech Mono',monospace;font-size:.76rem;color:var(--promo)}
+.loader{display:flex;gap:6px;justify-content:center;padding:60px}
+.loader-dot{width:8px;height:8px;background:var(--cyan);border-radius:50%;animation:loaderBounce .8s ease-in-out infinite}
+.loader-dot:nth-child(2){animation-delay:.15s}
+.loader-dot:nth-child(3){animation-delay:.3s}
+@keyframes loaderBounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-10px);opacity:1}}
+
+/* ── SERVICES ── */
+.services-section{min-height:100vh;padding:100px 40px 80px}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.service-card{background:var(--card-bg);border:1px solid var(--glass-border);padding:38px 30px;position:relative;overflow:hidden;transition:all .4s;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));box-shadow:var(--shadow)}
+.service-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(224,96,32,.06),transparent);opacity:0;transition:.4s}
+.service-card:hover{border-color:var(--orange);transform:translateY(-8px);box-shadow:0 20px 50px var(--glow-orange)}
+.service-card:hover::before{opacity:1}
+.service-card::after{content:'';position:absolute;top:0;right:0;width:20px;height:20px;background:var(--orange);clip-path:polygon(0 0,100% 0,100% 100%);opacity:.6}
+.service-icon{font-size:2.8rem;margin-bottom:18px;display:block}
+.service-title{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:900;color:var(--text-bright);margin-bottom:11px;letter-spacing:.05em}
+.service-title span{color:var(--orange)}
+.service-desc{font-size:.93rem;color:var(--muted);line-height:1.8}
+.service-badge{display:inline-flex;align-items:center;gap:5px;margin-top:14px;background:rgba(224,96,32,.1);border:1px solid rgba(224,96,32,.3);padding:3px 11px;font-size:.7rem;color:var(--orange);font-family:'Share Tech Mono',monospace;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.service-cta-btn{display:inline-block;margin-top:18px;background:rgba(224,96,32,.1);border:1px solid rgba(224,96,32,.35);color:var(--orange);padding:9px 18px;font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:.3s;text-decoration:none;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.service-cta-btn:hover{background:var(--orange);color:#fff}
+
+@media(max-width:768px){
+  .nav{padding:0 12px}
+  .nav-links{display:none}
+  .nav-right{gap:5px}
+  .hero{padding:100px 18px 60px}
+  .section,.admin-panel{padding:60px 18px}
+  .stats-bar{flex-wrap:wrap}
+  .stat-item{flex:1 1 50%;border-right:none;border-bottom:1px solid var(--glass-border)}
+  .form-row{grid-template-columns:1fr}
+  .theme-toggle span.label{display:none}
+  .theme-toggle{padding:7px 9px}
+  .cart-btn{padding:7px 10px}
+  .cart-count-label{display:none}
+  .btn-login{padding:7px 10px;font-size:.6rem;letter-spacing:.08em}
+  .btn-login .admin-label{display:none}
+  .btn-login .admin-icon{display:inline}
+  .detail-body{padding:20px 20px 28px}
+  .detail-img{height:240px}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div id="root"></div>
+<script type="text/babel">
+/* ============================================================
+   ROBOTECH STORE FRACTAL v3 — FULL APP
+   ============================================================ */
+const SUPABASE_URL = 'https://xmubbsxjkygwgitzikwy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_qYQ6L6mBof361id86GuYvQ_pSiBPT08';
+const WA_NUMBER = '593990163527';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ── CANVAS BG ── */
+function initCanvas(){
+  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
+  let W,H,P=[],N=[];
+  const resize=()=>{W=c.width=window.innerWidth;H=c.height=window.innerHeight};
+  resize();window.addEventListener('resize',resize);
+  class Par{constructor(){this.r()}r(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.life=Math.random();this.ml=.5+Math.random()*.5;this.s=Math.random()*2;this.h=Math.random()>.5?191:Math.random()>.5?260:20}u(){this.x+=this.vx;this.y+=this.vy;this.life-=.003;if(this.life<=0||this.x<0||this.x>W||this.y<0||this.y>H)this.r()}d(){const a=Math.sin(this.life*Math.PI/this.ml)*.6;ctx.globalAlpha=a;ctx.fillStyle=`hsl(${this.h},100%,60%)`;ctx.beginPath();ctx.arc(this.x,this.y,this.s,0,Math.PI*2);ctx.fill()}}
+  for(let i=0;i<120;i++)P.push(new Par());
+  for(let i=0;i<15;i++)N.push({x:Math.random()*W,y:Math.random()*H,r:2+Math.random()*3});
+  const dc=()=>{ctx.globalAlpha=.03;ctx.strokeStyle='#00e5ff';ctx.lineWidth=1;for(let i=0;i<N.length;i++)for(let j=i+1;j<N.length;j++){const d=Math.hypot(N[i].x-N[j].x,N[i].y-N[j].y);if(d<250){ctx.beginPath();ctx.moveTo(N[i].x,N[i].y);ctx.lineTo(N[i].x,N[j].y);ctx.lineTo(N[j].x,N[j].y);ctx.stroke()}}ctx.globalAlpha=.06;N.forEach(n=>{ctx.strokeStyle='#00e5ff';ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.stroke()})};
+  const ani=()=>{ctx.clearRect(0,0,W,H);const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*.6);g.addColorStop(0,'rgba(0,229,255,0.03)');g.addColorStop(1,'transparent');ctx.globalAlpha=1;ctx.fillStyle=g;ctx.fillRect(0,0,W,H);dc();P.forEach(p=>{p.u();p.d()});ctx.globalAlpha=1;requestAnimationFrame(ani)};
+  ani();
+}
+
+/* ── DATA ── */
+const CATEGORIES=[
+  {id:'all',name:'Todos',icon:'⚡'},
+  {id:'Arduino',name:'Arduino',icon:'🔵'},{id:'Raspberry Pi',name:'Raspberry Pi',icon:'🍓'},
+  {id:'STM32',name:'STM32',icon:'💎'},{id:'Sensores',name:'Sensores',icon:'📡'},
+  {id:'Motores',name:'Motores',icon:'⚙️'},{id:'Pantallas',name:'Pantallas',icon:'🖥️'},
+  {id:'Baterías',name:'Baterías',icon:'🔋'},{id:'Semiconductores',name:'Semiconductores',icon:'🔬'},
+  {id:'Programadoras',name:'Programadoras',icon:'💾'},{id:'Básicos',name:'Básicos',icon:'🔩'},
+  {id:'Robots',name:'Robots',icon:'🤖'},{id:'STEM',name:'STEM',icon:'🔭'},
+  {id:'Kits Educativos',name:'Kits Educativos',icon:'🏫'},{id:'Lego Robótica',name:'Lego Robótica',icon:'🧱'},
+  {id:'Robótica Competencia',name:'Rob. Competencia',icon:'🏆'},
+  {id:'PC Accesorios',name:'PC Accesorios',icon:'🖱️'},{id:'Celular Accesorios',name:'Cel. Accesorios',icon:'📱'},
+  {id:'Laptops',name:'Laptops',icon:'💻'},{id:'Almacenamiento',name:'Almacenamiento',icon:'💿'},
+];
+const SECTIONS=[{id:'all',label:'⚡ TODOS'},{id:'electronica',label:'🔌 ELECTRÓNICA'},{id:'robotica',label:'🤖 ROBÓTICA'},{id:'computacion',label:'💻 COMPUTACIÓN'}];
+const SECTION_CATS={all:null,electronica:['Arduino','Raspberry Pi','STM32','Sensores','Motores','Pantallas','Baterías','Semiconductores','Programadoras','Básicos'],robotica:['Robots','STEM','Kits Educativos','Lego Robótica','Robótica Competencia'],computacion:['PC Accesorios','Celular Accesorios','Laptops','Almacenamiento','Raspberry Pi']};
+
+const fmt=n=>new Intl.NumberFormat('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
+
+function StockBadge({stock}){
+  if(stock===0)return <span className="stock-badge stock-out">SIN STOCK</span>;
+  if(stock<=5)return <span className="stock-badge stock-low">ÚLTIMAS {stock}</span>;
+  return <span className="stock-badge stock-ok">STOCK: {stock}</span>;
+}
+
+/* ── NOTIFICATIONS ── */
+function NotifContainer({notifs,onDismiss}){
+  return(
+    <div className="notif-container">
+      {notifs.map(n=>(
+        <div key={n.id} className={`notif-toast${n.type?' '+n.type:''}${n.exit?' exit':''}`}>
+          <div className="notif-header">
+            <div className="notif-title"><span className="notif-ping"/>NUEVA CONSULTA</div>
+            <button className="notif-close" onClick={()=>onDismiss(n.id)}>✕</button>
+          </div>
+          <div className="notif-body">
+            Cliente: <strong>{n.client_name}</strong><br/>
+            Total: <strong style={{color:'var(--cyan)'}}>${fmt(n.total)}</strong>
+          </div>
+          <div className="notif-meta">// {new Date(n.created_at||Date.now()).toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})} · WHATSAPP PENDIENTE</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── THEME TOGGLE ── */
+function ThemeToggle({theme,onToggle}){
+  const d=theme==='dark';
+  return(
+    <button className="theme-toggle" onClick={onToggle}>
+      <span>{d?'☀️':'🌙'}</span><span className="label">{d?'CLARO':'NOCTURNO'}</span>
+    </button>
+  );
+}
+
+/* ── PRODUCT CARD ── */
+function ProductCard({product,onAddToCart,cartQty,onDetail}){
+  const [added,setAdded]=React.useState(false);
+  const handleAdd=(e)=>{e.stopPropagation();onAddToCart(product);setAdded(true);setTimeout(()=>setAdded(false),1500)};
+  const out=product.stock===0;
+  const isPromo=product.on_promo&&product.promo_price&&product.promo_price<product.price;
+  const displayPrice=isPromo?product.promo_price:product.price;
+  const disc=isPromo?Math.round(100-(product.promo_price/product.price*100)):0;
+  return(
+    <div className={`product-card${isPromo?' on-promo':''}`} onClick={()=>onDetail(product)}>
+      <div className="product-img">
+        {product.image_url?<img src={product.image_url} alt={product.name} onError={e=>e.target.style.display='none'}/>:<span className="placeholder">🔌</span>}
+        <StockBadge stock={product.stock}/>
+        {isPromo&&<span className="promo-badge">🔥 -{disc}% OFF</span>}
+      </div>
+      <div className="product-body">
+        <div className="product-cat">{product.category}</div>
+        <div className="product-name">{product.name}</div>
+        <div className="product-desc">{product.description||'Componente electrónico de alta calidad'}</div>
+        <div className="product-footer">
+          <div>
+            <div className={`product-price${isPromo?' promo-price':''}`}><span className="price-currency">$</span>{fmt(displayPrice)}</div>
+            {isPromo&&<span className="price-original">Antes: ${fmt(product.price)}</span>}
+          </div>
+          <div className="stock-info"><span className="stock-num">{product.stock}</span>uds.</div>
+        </div>
+        <button className={`btn-add-cart${added?' added':''}${isPromo&&!added?' promo-cart':''}`} onClick={handleAdd} disabled={out}>
+          {out?'✕ SIN STOCK':added?'✓ AGREGADO':`🛒 AGREGAR${cartQty>0?` (${cartQty})`:''}`}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── PRODUCT DETAIL MODAL ── */
+function ProductDetail({product,onClose,onAddToCart,cartQty}){
+  const [added,setAdded]=React.useState(false);
+  const isPromo=product.on_promo&&product.promo_price&&product.promo_price<product.price;
+  const displayPrice=isPromo?product.promo_price:product.price;
+  const disc=isPromo?Math.round(100-(product.promo_price/product.price*100)):0;
+  const out=product.stock===0;
+  const handleAdd=()=>{onAddToCart(product);setAdded(true);setTimeout(()=>setAdded(false),1500)};
+  const waText=`Hola! Me interesa: *${product.name}*\nPrecio: $${fmt(displayPrice)}${isPromo?` 🔥 PROMO -${disc}%`:''}\n\n¿Está disponible?`;
+  return(
+    <div className="detail-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className={`detail-modal${isPromo?' on-promo':''}`}>
+        <button className="detail-close" onClick={onClose}>✕</button>
+        <div className="detail-img">
+          {product.image_url?<img src={product.image_url} alt={product.name} onError={e=>e.target.style.display='none'}/>:<span style={{opacity:.25,fontSize:'5rem'}}>🔌</span>}
+          <div className="detail-img-overlay"/>
+        </div>
+        <div className="detail-body">
+          {isPromo&&(
+            <div className="detail-promo-banner">
+              <span>🔥</span>
+              <span>PROMOCIÓN ACTIVA — Ahorrás <strong>${fmt(product.price-product.promo_price)}</strong> ({disc}% de descuento)</span>
+            </div>
+          )}
+          <div className="detail-cat">{product.category}</div>
+          <div className="detail-name">{product.name}</div>
+          <div className="detail-desc">{product.description||'Componente electrónico de alta calidad para tus proyectos.'}</div>
+          <div className="detail-meta">
+            <div className="detail-meta-item">
+              <label>Precio</label>
+              {isPromo
+                ?<><div className="val promo">${fmt(displayPrice)}</div><div className="val original">${fmt(product.price)}</div></>
+                :<div className="val">${fmt(product.price)}</div>}
+            </div>
+            <div className="detail-meta-item">
+              <label>Stock</label>
+              <div className={`val stock-val${product.stock===0?' out':product.stock<=5?' low':''}`}>{product.stock===0?'Agotado':`${product.stock} uds.`}</div>
+            </div>
+            <div className="detail-meta-item">
+              <label>Categoría</label>
+              <div style={{color:'var(--muted)',fontSize:'.85rem',fontWeight:600,marginTop:4}}>{product.category}</div>
+            </div>
+            {isPromo&&<div className="detail-meta-item"><label>Descuento</label><div className="val promo">-{disc}%</div></div>}
+          </div>
+          <div className="detail-actions">
+            <button className={`detail-btn-add${isPromo?' promo':''}`} onClick={handleAdd} disabled={out}>
+              {out?'✕ SIN STOCK':added?'✓ AGREGADO AL CARRITO':`🛒 AGREGAR AL CARRITO${cartQty>0?` (${cartQty})`:''}` }
+            </button>
+            <a href={`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noreferrer" className="detail-btn-wa">📱 WA</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── CART PANEL ── */
+function CartPanel({cart,onClose,onQtyChange,onRemove,onClearCart,onCheckout}){
+  const total=cart.reduce((s,i)=>{const p=i.product,price=(p.on_promo&&p.promo_price)?p.promo_price:p.price;return s+price*i.qty},0);
+  const totalItems=cart.reduce((s,i)=>s+i.qty,0);
+  return(
+    <>
+      <div className="cart-overlay" onClick={onClose}/>
+      <div className="cart-panel">
+        <div className="cart-header">
+          <div className="cart-title">🛒 CARRITO <span style={{color:'var(--cyan)',fontSize:'.8em'}}>({totalItems})</span></div>
+          <button className="cart-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="cart-items">
+          {cart.length===0
+            ?<div className="cart-empty">// CARRITO_VACÍO<br/><br/>Agrega productos para continuar</div>
+            :cart.map(item=>{
+              const p=item.product,isP=p.on_promo&&p.promo_price,price=isP?p.promo_price:p.price;
+              return(
+                <div className="cart-item" key={p.id}>
+                  <div className="cart-item-img">
+                    {p.image_url?<img src={p.image_url} alt="" onError={e=>e.target.style.display='none'}/>:'🔌'}
+                  </div>
+                  <div className="cart-item-info">
+                    <div className="cart-item-name">{p.name}</div>
+                    <div className="cart-item-cat">{p.category}{isP&&<span style={{color:'var(--promo)',marginLeft:5}}>🔥</span>}</div>
+                    <div className={`cart-item-price${isP?' promo':' normal'}`}>${fmt(price*item.qty)}</div>
+                  </div>
+                  <div className="cart-qty">
+                    <button className="qty-btn" onClick={()=>onQtyChange(p.id,item.qty-1)}>−</button>
+                    <span className="qty-val">{item.qty}</span>
+                    <button className="qty-btn" onClick={()=>onQtyChange(p.id,item.qty+1)} disabled={item.qty>=p.stock}>+</button>
+                  </div>
+                  <button className="cart-item-del" onClick={()=>onRemove(p.id)}>✕</button>
+                </div>
+              );
+            })
+          }
+        </div>
+        {cart.length>0&&(
+          <div className="cart-footer">
+            <div className="cart-total"><span className="cart-total-label">TOTAL</span><span className="cart-total-val">${fmt(total)}</span></div>
+            <button className="btn-checkout" onClick={onCheckout}>📱 FINALIZAR · WHATSAPP</button>
+            <button className="btn-clear-cart" onClick={onClearCart}>⟳ Vaciar carrito</button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ── CHECKOUT MODAL ── */
+function CheckoutModal({cart,onClose,onSuccess}){
+  const [nombre,setNombre]=React.useState('');
+  const [apellido,setApellido]=React.useState('');
+  const [loading,setLoading]=React.useState(false);
+  const total=cart.reduce((s,i)=>{const p=i.product,price=(p.on_promo&&p.promo_price)?p.promo_price:p.price;return s+price*i.qty},0);
+  const totalProfit=cart.reduce((s,i)=>{const p=i.product,price=(p.on_promo&&p.promo_price)?p.promo_price:p.price;return s+((price-(p.price_cost||0))*i.qty)},0);
+  const handleSend=async()=>{
+    if(!nombre.trim()||!apellido.trim())return;
+    setLoading(true);
+    const cn=`${nombre.trim()} ${apellido.trim()}`;
+    const lines=[`🤖 *ROBOTECH FRACTAL - Nueva Consulta*`,`👤 Cliente: *${cn}*`,``,'📋 *Productos:*',
+      ...cart.map(i=>{const p=i.product,price=(p.on_promo&&p.promo_price)?p.promo_price:p.price;return `  • ${p.name} x${i.qty}  →  $${fmt(price*i.qty)}${(p.on_promo&&p.promo_price)?' 🔥':''}` }),
+      ``,`💰 *Total: $${fmt(total)}*`,``,`_robotechfractal.com_`];
+    const waUrl=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(lines.join('\n'))}`;
+    const od={client_name:cn,items:cart.map(i=>{const p=i.product,price=(p.on_promo&&p.promo_price)?p.promo_price:p.price;return{id:p.id,name:p.name,qty:i.qty,price,price_cost:p.price_cost||0}}),total,profit:totalProfit,status:'pending'};
+    await supabase.from('orders').insert([od]);
+    onSuccess({...od,id:String(Date.now()),created_at:new Date().toISOString()});
+    setLoading(false);window.open(waUrl,'_blank');onClose();
+  };
+  return(
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-title">FINALIZAR CONSULTA</div>
+        <div className="modal-sub">Ingresá tus datos para enviar por WhatsApp</div>
+        <div className="order-summary">
+          {cart.map(i=>{const p=i.product,price=(p.on_promo&&p.promo_price)?p.promo_price:p.price;return(<div className="order-summary-item" key={p.id}><span>{p.name} x{i.qty}{p.on_promo&&p.promo_price?<span style={{color:'var(--promo)',fontSize:'.7em',marginLeft:4}}>🔥</span>:null}</span><span>${fmt(price*i.qty)}</span></div>)})}
+          <div className="order-summary-total"><span>TOTAL</span><span>${fmt(total)}</span></div>
+        </div>
+        <div className="form-row">
+          <div className="form-group"><label className="form-label">Nombre</label><input className="form-input" placeholder="Tu nombre" value={nombre} onChange={e=>setNombre(e.target.value)}/></div>
+          <div className="form-group"><label className="form-label">Apellido</label><input className="form-input" placeholder="Tu apellido" value={apellido} onChange={e=>setApellido(e.target.value)}/></div>
+        </div>
+        {(!nombre.trim()||!apellido.trim())&&<div className="error-msg">// Ingresá nombre y apellido</div>}
+        <button className="btn-whatsapp" onClick={handleSend} disabled={loading||!nombre.trim()||!apellido.trim()}>
+          <span>📱</span>{loading?'PREPARANDO...':'ENVIAR A WHATSAPP'}
+        </button>
+        <div style={{fontSize:'.75rem',color:'var(--muted)',marginTop:10,fontFamily:'Share Tech Mono,monospace',textAlign:'center'}}>// Se abrirá WhatsApp con tu pedido listo</div>
+      </div>
+    </div>
+  );
+}
+
+/* ── LOGIN MODAL ── */
+function LoginModal({onClose,onLogin}){
+  const [email,setEmail]=React.useState('');
+  const [pass,setPass]=React.useState('');
+  const [loading,setLoading]=React.useState(false);
+  const [error,setError]=React.useState('');
+  const handleLogin=async(e)=>{
+    e.preventDefault();setError('');setLoading(true);
+    const{data,error:err}=await supabase.auth.signInWithPassword({email,password:pass});
+    if(err)setError(`ERROR: ${err.message}`);
+    else onLogin(data.user);
+    setLoading(false);
+  };
+  return(
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-title">ACCESO ADMIN</div>
+        <div className="modal-sub">Panel de gestión · Robotech Store Fractal</div>
+        <form onSubmit={handleLogin}>
+          <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="admin@robotech.com" value={email} onChange={e=>setEmail(e.target.value)} required/></div>
+          <div className="form-group"><label className="form-label">Contraseña</label><input className="form-input" type="password" placeholder="••••••••" value={pass} onChange={e=>setPass(e.target.value)} required/></div>
+          {error&&<div className="error-msg">{error}</div>}
+          <button className="btn-submit" type="submit" disabled={loading}>{loading?'VERIFICANDO...':'INGRESAR AL PANEL'}</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── PROMO QUICK MODAL ── */
+function PromoModal({product,onClose,onSave}){
+  const hasPromo=!!(product.on_promo&&product.promo_price);
+  const [enabled,setEnabled]=React.useState(hasPromo);
+  const [promoPrice,setPromoPrice]=React.useState(product.promo_price||'');
+  const [loading,setLoading]=React.useState(false);
+  const pp=parseFloat(promoPrice),pv=product.price;
+  const disc=(pp&&pp<pv)?Math.round(100-(pp/pv*100)):null;
+  const handleSave=async()=>{
+    setLoading(true);
+    const valid=enabled&&pp&&pp<pv;
+    const updates={on_promo:valid,promo_price:valid?pp:null};
+    await supabase.from('products').update(updates).eq('id',product.id);
+    onSave({...product,...updates});
+    setLoading(false);onClose();
+  };
+  return(
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{maxWidth:400}}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-title">🔥 GESTIÓN DE PROMO</div>
+        <div className="modal-sub">{product.name}</div>
+        <div className="promo-modal-info">Precio normal: <strong style={{color:'var(--text)'}}>${fmt(pv)}</strong></div>
+        <div className="toggle-row" style={{marginBottom:16}}>
+          <label className="toggle-switch"><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/><div className="toggle-track"/><div className="toggle-thumb"/></label>
+          <span className="toggle-label" style={{color:enabled?'var(--promo)':'var(--muted)'}}>{enabled?'🔥 ACTIVA':'Sin promoción'}</span>
+        </div>
+        {enabled&&(
+          <>
+            <div className="form-group">
+              <label className="form-label">Precio Promo ($)</label>
+              <input className="form-input" type="number" min="0" step="0.01" placeholder={`< $${fmt(pv)}`} value={promoPrice} onChange={e=>setPromoPrice(e.target.value)}/>
+            </div>
+            {disc!==null&&<div style={{padding:'8px 12px',background:'rgba(220,38,38,.08)',border:'1px solid rgba(220,38,38,.25)',fontFamily:'Orbitron,sans-serif',fontSize:'.9rem',color:'var(--promo)',fontWeight:900,textAlign:'center',marginBottom:8}}>🔥 -{disc}% · Ahorro: ${fmt(pv-pp)}</div>}
+            {pp>=pv&&promoPrice!==''&&<div className="error-msg">// Debe ser menor al precio normal</div>}
+          </>
+        )}
+        <button className="btn-submit" onClick={handleSave} disabled={loading||(enabled&&(!promoPrice||pp>=pv))} style={{background:enabled?'var(--promo)':'var(--muted)'}}>
+          {loading?'GUARDANDO...':enabled?'🔥 ACTIVAR PROMO':'✓ QUITAR PROMO'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── PRODUCT MODAL (ADMIN) ── */
+function ProductModal({product,onClose,onSave}){
+  const [form,setForm]=React.useState({name:product?.name||'',description:product?.description||'',category:product?.category||'Arduino',price_cost:product?.price_cost||'',price:product?.price||'',stock:product?.stock||'',image_url:product?.image_url||'',on_promo:product?.on_promo||false,promo_price:product?.promo_price||''});
+  const [imgPreview,setImgPreview]=React.useState(product?.image_url||'');
+  const [loading,setLoading]=React.useState(false);
+  const [msg,setMsg]=React.useState('');
+  const [uploading,setUploading]=React.useState(false);
+  const isEdit=!!product?.id;
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const margin=()=>{const c=parseFloat(form.price_cost)||0,s=parseFloat(form.price)||0;if(!c||!s)return null;return(((s-c)/c)*100).toFixed(1)};
+  
+  const handleImageFile=async(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    setUploading(true);
+    const ext=file.name.split('.').pop();
+    const fname=`${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const{data,error}=await supabase.storage.from('product-images').upload(fname,file,{contentType:file.type,upsert:false});
+    if(!error&&data){
+      const{data:{publicUrl}}=supabase.storage.from('product-images').getPublicUrl(fname);
+      setImgPreview(publicUrl);set('image_url',publicUrl);
+    } else {
+      const reader=new FileReader();
+      reader.onload=(ev)=>{setImgPreview(ev.target.result);set('image_url',ev.target.result)};
+      reader.readAsDataURL(file);
+    }
+    setUploading(false);
+  };
+
+  const handleSave=async(e)=>{
+    e.preventDefault();setLoading(true);setMsg('');
+    const pp=parseFloat(form.promo_price),pv=parseFloat(form.price)||0;
+    const promoValid=form.on_promo&&pp&&pp<pv;
+    const data={...form,price_cost:parseFloat(form.price_cost)||0,price:pv,stock:parseInt(form.stock)||0,on_promo:promoValid,promo_price:promoValid?pp:null};
+    let err;
+    if(isEdit){const res=await supabase.from('products').update(data).eq('id',product.id);err=res.error;}
+    else{const res=await supabase.from('products').insert([data]);err=res.error;}
+    if(err)setMsg(`ERROR: ${err.message}`);else{onSave();onClose();}
+    setLoading(false);
+  };
+  const m=margin();
+  const pd=()=>{const pp=parseFloat(form.promo_price),pv=parseFloat(form.price);if(!pp||!pv||pp>=pv)return null;return Math.round(100-(pp/pv*100))};
+  return(
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{maxWidth:620,maxHeight:'90vh',overflowY:'auto'}}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-title">{isEdit?'EDITAR PRODUCTO':'NUEVO PRODUCTO'}</div>
+        <div className="modal-sub">Gestión de inventario · Robotech Fractal</div>
+        <form onSubmit={handleSave}>
+          <div className="form-group"><label className="form-label">Nombre</label><input className="form-input" placeholder="Ej: Arduino Uno R3" value={form.name} onChange={e=>set('name',e.target.value)} required/></div>
+          <div className="form-group"><label className="form-label">Descripción</label><textarea className="form-input" placeholder="Describe el producto..." value={form.description} onChange={e=>set('description',e.target.value)}/></div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Categoría</label>
+              <select className="form-input" value={form.category} onChange={e=>set('category',e.target.value)}>
+                <optgroup label="── ELECTRÓNICA ──">{['Arduino','Raspberry Pi','STM32','Sensores','Motores','Pantallas','Baterías','Semiconductores','Programadoras','Básicos'].map(c=><option key={c}>{c}</option>)}</optgroup>
+                <optgroup label="── ROBÓTICA ──">{['Robots','STEM','Kits Educativos','Lego Robótica','Robótica Competencia'].map(c=><option key={c}>{c}</option>)}</optgroup>
+                <optgroup label="── COMPUTACIÓN ──">{['PC Accesorios','Celular Accesorios','Laptops','Almacenamiento'].map(c=><option key={c}>{c}</option>)}</optgroup>
+              </select>
+              <input className="form-input" style={{marginTop:6,fontSize:'.82rem'}} placeholder="✏️ O escribe categoría personalizada..." value={form.category} onChange={e=>set('category',e.target.value)}/>
+            </div>
+            <div className="form-group"><label className="form-label">Stock</label><input className="form-input" type="number" placeholder="0" min="0" value={form.stock} onChange={e=>set('stock',e.target.value)} required/></div>
+          </div>
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">💰 Costo ($)</label><input className="form-input" type="number" placeholder="0.00" min="0" step="0.01" value={form.price_cost} onChange={e=>set('price_cost',e.target.value)} required/></div>
+            <div className="form-group"><label className="form-label">🏷️ Venta ($)</label><input className="form-input" type="number" placeholder="0.00" min="0" step="0.01" value={form.price} onChange={e=>set('price',e.target.value)} required/></div>
+          </div>
+          {m!==null&&<div className="margin-preview">MARGEN: {m}% · Ganancia: ${fmt((parseFloat(form.price)||0)-(parseFloat(form.price_cost)||0))}/ud.</div>}
+          <div className="promo-section" style={{marginBottom:14,marginTop:8}}>
+            <div className="promo-section-title">🔥 Promoción</div>
+            <div className="toggle-row" style={{marginBottom:form.on_promo?12:0}}>
+              <label className="toggle-switch"><input type="checkbox" checked={form.on_promo} onChange={e=>set('on_promo',e.target.checked)}/><div className="toggle-track"/><div className="toggle-thumb"/></label>
+              <span className="toggle-label" style={{color:form.on_promo?'var(--promo)':'var(--muted)'}}>{form.on_promo?'🔥 Activa':'Sin promo'}</span>
+            </div>
+            {form.on_promo&&(
+              <>
+                <label className="form-label" style={{marginTop:10}}>Precio Promo ($)</label>
+                <input className="form-input" type="number" min="0" step="0.01" placeholder={`< $${fmt(parseFloat(form.price)||0)}`} value={form.promo_price} onChange={e=>set('promo_price',e.target.value)}/>
+                {pd()!==null&&<div style={{marginTop:7,padding:'7px 12px',background:'rgba(220,38,38,.08)',border:'1px solid rgba(220,38,38,.22)',fontFamily:'Orbitron,sans-serif',fontSize:'.88rem',color:'var(--promo)',fontWeight:900,textAlign:'center'}}>🔥 -{pd()}% · Ahorro: ${fmt((parseFloat(form.price)||0)-(parseFloat(form.promo_price)||0))}</div>}
+              </>
+            )}
+          </div>
+          <div className="form-group">
+            <label className="form-label">Imagen{uploading?' — SUBIENDO...':''}</label>
+            <label className="file-input-label" htmlFor="prod-img">{uploading?'⏳ Subiendo a Storage...':'📷 Subir imagen (Supabase Storage)'}</label>
+            <input id="prod-img" type="file" accept="image/*" onChange={handleImageFile} disabled={uploading}/>
+            {imgPreview&&<img className="img-preview show" src={imgPreview} alt="preview" onError={e=>e.target.style.display='none'}/>}
+            {!imgPreview&&(
+              <div>
+                <div style={{textAlign:'center',color:'var(--muted)',fontSize:'.7rem',padding:'4px',fontFamily:'Share Tech Mono,monospace'}}>— O ingresa URL —</div>
+                <input className="form-input" style={{marginTop:4}} placeholder="https://..." value={form.image_url} onChange={e=>{set('image_url',e.target.value);setImgPreview(e.target.value)}}/>
+              </div>
+            )}
+          </div>
+          {msg&&<div className="error-msg">{msg}</div>}
+          <button className="btn-submit" type="submit" disabled={loading||uploading}>{loading?'GUARDANDO...':isEdit?'✓ ACTUALIZAR':'+ AGREGAR PRODUCTO'}</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── ADMIN PANEL ── */
+function AdminPanel({user,products:pp,orders:po,onLogout,onRefresh}){
+  const [tab,setTab]=React.useState('productos');
+  const [showAdd,setShowAdd]=React.useState(false);
+  const [editP,setEditP]=React.useState(null);
+  const [promoP,setPromoP]=React.useState(null);
+  const [lp,setLp]=React.useState(pp);
+  const [lo,setLo]=React.useState(po);
+  React.useEffect(()=>setLp(pp),[pp]);
+  React.useEffect(()=>setLo(po),[po]);
+
+  const handleDeleteProduct=async(id)=>{
+    if(!confirm('¿Eliminar este producto?'))return;
+    setLp(p=>p.filter(x=>x.id!==id));
+    await supabase.from('products').delete().eq('id',id);
+  };
+  const handleProductSaved=()=>onRefresh();
+  const handlePromoSaved=(upd)=>setLp(prev=>prev.map(p=>p.id===upd.id?upd:p));
+
+  const handleOrderAction=async(oid,status)=>{
+    const order=lo.find(o=>o.id===oid);if(!order)return;
+    if(status==='confirmed'){
+      setLp(prev=>prev.map(p=>{const item=order.items.find(i=>i.id===p.id);if(!item)return p;return{...p,stock:Math.max(0,p.stock-item.qty)}}));
+      for(const item of order.items){const prod=lp.find(p=>p.id===item.id);if(prod)await supabase.from('products').update({stock:Math.max(0,prod.stock-item.qty)}).eq('id',prod.id)}
+    }
+    await supabase.from('orders').update({status}).eq('id',oid);
+    setLo(prev=>prev.map(o=>o.id===oid?{...o,status}:o));
+  };
+
+  const handleDeleteOrder=async(oid)=>{
+    const order=lo.find(o=>o.id===oid);if(!order)return;
+    const isCon=order.status==='confirmed';
+    if(!confirm(isCon?`⚠️ Consulta CONFIRMADA.\nSe restaurará el stock.\n\n¿Continuar?`:'¿Eliminar esta consulta?'))return;
+    if(isCon){
+      const rp=lp.map(p=>{const item=order.items.find(i=>i.id===p.id);if(!item)return p;return{...p,stock:p.stock+item.qty}});
+      setLp(rp);
+      for(const item of order.items){const prod=rp.find(p=>p.id===item.id);if(prod)await supabase.from('products').update({stock:prod.stock}).eq('id',prod.id)}
+    }
+    setLo(prev=>prev.filter(o=>o.id!==oid));
+    const{error}=await supabase.from('orders').delete().eq('id',oid);
+    if(error){
+      console.error('Error borrando orden:',error);
+      setLo(prev=>[...prev,order].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)));
+      alert('ERROR al borrar. Verificá tu conexión o sesión de admin.');
+    }
+  };
+
+  const conf=lo.filter(o=>o.status==='confirmed'),pend=lo.filter(o=>o.status==='pending');
+  const rev=conf.reduce((s,o)=>s+o.total,0),prof=conf.reduce((s,o)=>s+o.profit,0);
+  const units=conf.reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+i.qty,0),0);
+  const inv=lp.reduce((s,p)=>s+((p.price_cost||0)*p.stock),0);
+  const promoCount=lp.filter(p=>p.on_promo&&p.promo_price).length;
+
+  return(
+    <div className="admin-panel">
+      <div className="admin-header">
+        <div>
+          <div style={{fontFamily:'Share Tech Mono',fontSize:'.7rem',color:'var(--cyan)',marginBottom:5}}>// PANEL DE ADMINISTRACIÓN</div>
+          <div className="admin-title">GESTIÓN DE <span>INVENTARIO</span></div>
+          <div style={{fontSize:'.8rem',color:'var(--muted)',marginTop:3}}>{user.email}</div>
+        </div>
+        <div className="admin-actions">
+          {tab==='productos'&&<button className="btn-add" onClick={()=>setShowAdd(true)}>+ NUEVO PRODUCTO</button>}
+          <button className="btn-logout" onClick={onLogout}>⏻ SALIR</button>
+        </div>
+      </div>
+
+      <div className="dashboard-grid">
+        <div className="dash-card"><div className="dash-card-label">Ventas Confirmadas</div><div className="dash-card-value green">{conf.length}</div><div className="dash-card-sub">órdenes</div></div>
+        <div className="dash-card"><div className="dash-card-label">Ingresos</div><div className="dash-card-value">${fmt(rev)}</div><div className="dash-card-sub">confirmados</div></div>
+        <div className="dash-card"><div className="dash-card-label">Ganancia</div><div className="dash-card-value green">${fmt(prof)}</div><div className="dash-card-sub">margen neto</div></div>
+        <div className="dash-card" style={{borderColor:'rgba(224,96,32,.3)',background:'rgba(224,96,32,.04)'}}><div className="dash-card-label">💰 Invertido</div><div className="dash-card-value orange">${fmt(inv)}</div><div className="dash-card-sub">costo × stock</div></div>
+        <div className="dash-card"><div className="dash-card-label">Pendientes</div><div className="dash-card-value orange">{pend.length}</div><div className="dash-card-sub">por confirmar</div></div>
+        <div className="dash-card"><div className="dash-card-label">Unidades Vendidas</div><div className="dash-card-value">{units}</div><div className="dash-card-sub">confirmadas</div></div>
+        <div className="dash-card"><div className="dash-card-label">Productos</div><div className="dash-card-value">{lp.length}</div><div className="dash-card-sub">en catálogo</div></div>
+        <div className="dash-card" style={{borderColor:'rgba(220,38,38,.3)',background:'rgba(220,38,38,.03)'}}><div className="dash-card-label">🔥 En Promo</div><div className="dash-card-value promo-col">{promoCount}</div><div className="dash-card-sub">con descuento</div></div>
+      </div>
+
+      <div className="admin-tabs">
+        <button className={`admin-tab${tab==='productos'?' active':''}`} onClick={()=>setTab('productos')}>📦 Productos ({lp.length})</button>
+        <button className={`admin-tab orders-tab${tab==='ordenes'?' active':''}`} onClick={()=>setTab('ordenes')}>
+          📋 Consultas ({lo.length})
+          {pend.length>0&&<span style={{background:'var(--orange)',color:'#fff',borderRadius:'50%',width:17,height:17,display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:'.62rem',fontWeight:900,marginLeft:7}}>{pend.length}</span>}
+        </button>
+      </div>
+
+      {tab==='productos'&&(
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead><tr><th>IMG</th><th>NOMBRE</th><th>CAT</th><th>COSTO</th><th>VENTA</th><th>PROMO</th><th>MARGEN</th><th>STOCK</th><th>ACCIONES</th></tr></thead>
+            <tbody>
+              {lp.length===0&&<tr><td colSpan="9" style={{textAlign:'center',padding:'40px',color:'var(--muted)',fontFamily:'Share Tech Mono,monospace'}}>Sin productos — Agrega el primero →</td></tr>}
+              {lp.map(p=>{
+                const m=p.price_cost>0?((p.price-p.price_cost)/p.price_cost*100).toFixed(1):null;
+                const isPromo=p.on_promo&&p.promo_price;
+                return(
+                  <tr key={p.id}>
+                    <td>{p.image_url?<img src={p.image_url} alt="" onError={e=>e.target.style.display='none'}/>:<div style={{width:46,height:46,background:'var(--glass)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.3rem',border:'1px solid var(--glass-border)'}}>🔌</div>}</td>
+                    <td style={{fontWeight:600,maxWidth:170}}>{p.name}</td>
+                    <td><span className="tag-pill-sm">{p.category}</span></td>
+                    <td style={{fontFamily:'Share Tech Mono,monospace',color:'var(--muted)',fontSize:'.8rem'}}>${fmt(p.price_cost||0)}</td>
+                    <td>
+                      <div style={{fontFamily:'Orbitron,monospace',color:isPromo?'var(--muted)':'var(--cyan)',fontWeight:700,fontSize:'.83rem',textDecoration:isPromo?'line-through':'none'}}>${fmt(p.price)}</div>
+                      {isPromo&&<div style={{fontFamily:'Orbitron,monospace',color:'var(--promo)',fontWeight:900,fontSize:'.88rem'}}>${fmt(p.promo_price)}</div>}
+                    </td>
+                    <td>{isPromo?<span className="promo-chip">🔥 {Math.round(100-(p.promo_price/p.price*100))}%</span>:<span style={{color:'var(--muted)',fontSize:'.68rem'}}>—</span>}</td>
+                    <td>{m!==null?<span className="margin-chip">{m}%</span>:<span style={{color:'var(--muted)',fontSize:'.68rem'}}>—</span>}</td>
+                    <td><span style={{fontFamily:'Share Tech Mono,monospace',color:p.stock===0?'#ef4444':p.stock<=5?'var(--orange)':'var(--green)',fontWeight:700}}>{p.stock}</span></td>
+                    <td style={{whiteSpace:'nowrap'}}>
+                      <button className="btn-edit" onClick={()=>setEditP(p)}>EDITAR</button>
+                      <button className={isPromo?'btn-promo-on':'btn-promo-off'} onClick={()=>setPromoP(p)}>{isPromo?'🔥 PROMO':'+ PROMO'}</button>
+                      <button className="btn-delete" onClick={()=>handleDeleteProduct(p.id)}>BORRAR</button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {tab==='ordenes'&&(
+        <div className="admin-table-wrap">
+          {lo.length===0
+            ?<div style={{textAlign:'center',padding:'60px',color:'var(--muted)',fontFamily:'Share Tech Mono,monospace'}}>// SIN_CONSULTAS</div>
+            :<>
+              <div style={{marginBottom:14,padding:'9px 14px',background:'rgba(239,68,68,.05)',border:'1px solid rgba(239,68,68,.13)',fontFamily:'Share Tech Mono,monospace',fontSize:'.7rem',color:'var(--muted)'}}>
+                💡 Eliminar consulta <strong style={{color:'var(--orange)'}}>CONFIRMADA</strong> restaura el stock automáticamente.
+              </div>
+              <table className="admin-table">
+                <thead><tr><th>FECHA</th><th>CLIENTE</th><th>PRODUCTOS</th><th>TOTAL</th><th>GANANCIA</th><th>ESTADO</th><th>ACCIONES</th></tr></thead>
+                <tbody>
+                  {[...lo].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(o=>(
+                    <tr key={o.id}>
+                      <td style={{fontFamily:'Share Tech Mono,monospace',fontSize:'.68rem',color:'var(--muted)',whiteSpace:'nowrap'}}>
+                        {new Date(o.created_at).toLocaleDateString('es-EC')}<br/>{new Date(o.created_at).toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})}
+                      </td>
+                      <td style={{fontWeight:700}}>{o.client_name}</td>
+                      <td style={{fontSize:'.8rem',maxWidth:200}}>{o.items.map((i,idx)=><div key={idx} style={{color:'var(--muted)',lineHeight:1.6}}>{i.name} <span style={{color:'var(--cyan)'}}>×{i.qty}</span></div>)}</td>
+                      <td style={{fontFamily:'Orbitron,monospace',color:'var(--cyan)',fontWeight:700}}>${fmt(o.total)}</td>
+                      <td style={{fontFamily:'Orbitron,monospace',color:'var(--green)',fontWeight:700}}>{o.status==='confirmed'?`$${fmt(o.profit)}`:<span style={{color:'var(--muted)'}}>—</span>}</td>
+                      <td>
+                        <span className={`order-status status-${o.status}`}>{o.status==='pending'?'PENDIENTE':o.status==='confirmed'?'CONFIRMADA':'RECHAZADA'}</span>
+                        {o.status==='confirmed'&&<span className="restore-note">↑ stock descontado</span>}
+                      </td>
+                      <td style={{whiteSpace:'nowrap'}}>
+                        {o.status==='pending'&&<><button className="btn-confirm" onClick={()=>handleOrderAction(o.id,'confirmed')}>✓ CONF.</button><button className="btn-reject" onClick={()=>handleOrderAction(o.id,'rejected')}>✕ REC.</button></>}
+                        <button className="btn-delete-order" onClick={()=>handleDeleteOrder(o.id)} style={{marginLeft:o.status==='pending'?5:0}}>🗑 BORRAR</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          }
+        </div>
+      )}
+
+      {showAdd&&<ProductModal onClose={()=>setShowAdd(false)} onSave={handleProductSaved}/>}
+      {editP&&<ProductModal product={editP} onClose={()=>setEditP(null)} onSave={handleProductSaved}/>}
+      {promoP&&<PromoModal product={promoP} onClose={()=>setPromoP(null)} onSave={handlePromoSaved}/>}
+    </div>
+  );
+}
+
+/* ── SERVICES PAGE ── */
+function ServicesPage({onBack}){
+  const services=[
+    {icon:'🖨️',title:<>DISEÑO E <span>IMPRESIÓN 3D</span></>,desc:'Fabricamos piezas personalizadas PLA, ABS, PETG, TPU y Resina. Diseño CAD incluido. Prototipos rápidos y producción en serie.',badge:'⚡ SERVICIO 24 HORAS',extra:'PLA · ABS · PETG · TPU · Resina',wa:'Hola! Necesito cotización para impresión 3D'},
+    {icon:'⚡',title:<>FABRICACIÓN DE <span>PLACAS PCB</span></>,desc:'Diseño y fabricación de PCBs a medida. Esquemático, enrutado y manufactura SMD y THT. Prototipo y producción.',badge:'🔬 PCB PROFESIONAL',extra:'1, 2, 4 capas · SMD · THT · Prototipo y serie',wa:'Hola! Me interesa fabricación de PCB'},
+    {icon:'🤖',title:<>PROYECTOS <span>ELECTRÓNICOS & ROBÓTICOS</span></>,desc:'Desarrollamos tu proyecto completo: idea, diseño, programación y entrega. Robots, IoT, automatizaciones, drones.',badge:'🚀 DESARROLLO COMPLETO',extra:'IoT · Automatización · Robots · Drones · IA',wa:'Hola! Quiero consultar sobre desarrollo de proyecto'},
+  ];
+  return(
+    <section className="services-section" style={{maxWidth:1200,margin:'0 auto'}}>
+      <div style={{marginBottom:48}}>
+        <button onClick={onBack} style={{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontFamily:'Share Tech Mono,monospace',fontSize:'.78rem',marginBottom:18,display:'flex',alignItems:'center',gap:8}} onMouseEnter={e=>e.target.style.color='var(--cyan)'} onMouseLeave={e=>e.target.style.color='var(--muted)'}>← VOLVER</button>
+        <span className="section-tag">Capacidades técnicas</span>
+        <h2 className="section-title" style={{marginBottom:14}}>NUESTROS <em>SERVICIOS</em></h2>
+        <p style={{color:'var(--muted)',fontSize:'1rem',lineHeight:1.7,maxWidth:580}}>Más allá de los componentes, soluciones completas para tus proyectos. Cotización inmediata por WhatsApp.</p>
+      </div>
+      <div className="services-grid">
+        {services.map((s,i)=>(
+          <div key={i} className="service-card">
+            <span className="service-icon">{s.icon}</span>
+            <div className="service-title">{s.title}</div>
+            <div className="service-desc">{s.desc}</div>
+            <div style={{marginTop:11,fontSize:'.76rem',color:'var(--purple)',fontFamily:'Share Tech Mono,monospace'}}>{s.extra}</div>
+            <span className="service-badge">{s.badge}</span><br/>
+            <a href={`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(s.wa)}`} target="_blank" rel="noreferrer" className="service-cta-btn">📱 CONSULTAR POR WHATSAPP</a>
+          </div>
+        ))}
+      </div>
+      <div style={{marginTop:56,textAlign:'center',padding:'38px',background:'var(--glass)',border:'1px solid var(--glass-border)'}}>
+        <div style={{fontFamily:'Orbitron,sans-serif',fontSize:'1.15rem',fontWeight:900,color:'var(--text-bright)',marginBottom:11}}>¿TENÉS UN <span style={{color:'var(--orange)'}}>PROYECTO EN MENTE?</span></div>
+        <div style={{color:'var(--muted)',marginBottom:22,fontSize:'.93rem'}}>Respondemos en minutos.</div>
+        <a href={`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Hola! Tengo un proyecto y quiero cotización')}`} target="_blank" rel="noreferrer"
+          style={{display:'inline-flex',alignItems:'center',gap:10,background:'#25D366',color:'#fff',padding:'13px 30px',fontFamily:'Orbitron,sans-serif',fontSize:'.8rem',fontWeight:700,letterSpacing:'.1em',textDecoration:'none',transition:'.3s',clipPath:'polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))',boxShadow:'0 0 25px rgba(37,211,102,.3)'}}>
+          <span>📱</span> +593 990 163 527
+        </a>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   MAIN APP
+   ============================================================ */
+function App(){
+  const [theme,setTheme]=React.useState(()=>localStorage.getItem('rf-theme')||'light');
+  React.useEffect(()=>{document.body.classList.toggle('dark-mode',theme==='dark');localStorage.setItem('rf-theme',theme)},[theme]);
+  const toggleTheme=()=>setTheme(t=>t==='dark'?'light':'dark');
+
+  const [view,setView]=React.useState('store');
+  const [showLogin,setShowLogin]=React.useState(false);
+  const [showCart,setShowCart]=React.useState(false);
+  const [showCheckout,setShowCheckout]=React.useState(false);
+  const [detailProduct,setDetailProduct]=React.useState(null);
+  const [adminUser,setAdminUser]=React.useState(null);
+  const [products,setProducts]=React.useState([]);
+  const [orders,setOrders]=React.useState([]);
+  const [loading,setLoading]=React.useState(false);
+  const [activeCategory,setActiveCategory]=React.useState('all');
+  const [activeSection,setActiveSection]=React.useState('all');
+  const [search,setSearch]=React.useState('');
+  const [searchInput,setSearchInput]=React.useState('');
+  const [promoFilter,setPromoFilter]=React.useState(false);
+  const [cart,setCart]=React.useState(()=>{try{return JSON.parse(localStorage.getItem('rf-cart'))||[]}catch{return[]}});
+  const [notifs,setNotifs]=React.useState([]);
+  const realtimeRef=React.useRef(null);
+
+  React.useEffect(()=>{try{localStorage.setItem('rf-cart',JSON.stringify(cart))}catch{}},[cart]);
+
+  React.useEffect(()=>{
+    const t=setTimeout(()=>setSearch(searchInput),280);
+    return()=>clearTimeout(t);
+  },[searchInput]);
+
+  const fetchProducts=React.useCallback(async(forAdmin=false)=>{
+    setLoading(true);
+    const table = forAdmin ? 'products' : 'products_public';
+    const{data,error}=await supabase.from(table).select('*').order('created_at',{ascending:false});
+    if(!error&&data)setProducts(data);
+    setLoading(false);
+  },[]);
+
+  const fetchOrders=React.useCallback(async()=>{
+    const{data,error}=await supabase.from('orders').select('*').order('created_at',{ascending:false});
+    if(!error&&data)setOrders(data);
+  },[]);
+
+  React.useEffect(()=>{fetchProducts(false)},[fetchProducts]);
+  React.useEffect(()=>{initCanvas()},[]);
+  React.useEffect(()=>{
+    supabase.auth.getSession().then(({data:{session}})=>{if(session){setAdminUser(session.user);fetchProducts(true);}});
+  },[]);
+  React.useEffect(()=>{if(adminUser)fetchOrders()},[adminUser,fetchOrders]);
+
+  React.useEffect(()=>{
+    if(!adminUser)return;
+    const ch=supabase.channel('orders-realtime')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'orders'},(payload)=>{
+        const newOrder=payload.new;
+        setOrders(prev=>[newOrder,...prev]);
+        const nid=Date.now();
+        setNotifs(prev=>[...prev,{...newOrder,id:nid,exit:false}]);
+        setTimeout(()=>setNotifs(prev=>prev.map(n=>n.id===nid?{...n,exit:true}:n)),6000);
+        setTimeout(()=>setNotifs(prev=>prev.filter(n=>n.id!==nid)),6400);
+      })
+      .subscribe();
+    realtimeRef.current=ch;
+    return()=>{supabase.removeChannel(ch)};
+  },[adminUser]);
+
+  const addToCart=(product)=>setCart(c=>{const ex=c.find(i=>i.product.id===product.id);if(ex)return c.map(i=>i.product.id===product.id?{...i,qty:Math.min(i.qty+1,product.stock)}:i);return[...c,{product,qty:1}]});
+  const changeQty=(id,qty)=>{if(qty<=0){setCart(c=>c.filter(i=>i.product.id!==id));return}setCart(c=>c.map(i=>i.product.id===id?{...i,qty}:i))};
+  const removeFromCart=(id)=>setCart(c=>c.filter(i=>i.product.id!==id));
+  const clearCart=()=>setCart([]);
+  const cartCount=cart.reduce((s,i)=>s+i.qty,0);
+  const getCartQty=(pid)=>{const item=cart.find(i=>i.product.id===pid);return item?item.qty:0};
+  const handleOrderSuccess=(newOrder)=>{setOrders(o=>[newOrder,...o]);clearCart()};
+  const handleLogin=(user)=>{setAdminUser(user);setShowLogin(false);setView('admin');fetchProducts(true)};
+  const handleLogout=async()=>{await supabase.auth.signOut();setAdminUser(null);setView('store');fetchProducts(false)};
+  const goToSection=(sid)=>{setView('store');setActiveSection(sid);setActiveCategory('all');setTimeout(()=>document.getElementById('productos')?.scrollIntoView({behavior:'smooth'}),50)};
+
+  const visibleCats=React.useMemo(()=>{
+    if(activeSection==='all')return CATEGORIES;
+    const allowed=SECTION_CATS[activeSection];
+    return[{id:'all',name:'Todos',icon:'⚡'},...CATEGORIES.filter(c=>c.id!=='all'&&allowed.includes(c.id))];
+  },[activeSection]);
+
+  const filtered=products.filter(p=>{
+    const sc=SECTION_CATS[activeSection];
+    const mS=!sc||sc.includes(p.category);
+    const mC=activeCategory==='all'||p.category===activeCategory;
+    const mQ=!search||p.name.toLowerCase().includes(search.toLowerCase())||p.description?.toLowerCase().includes(search.toLowerCase());
+    const mP=!promoFilter||(p.on_promo&&p.promo_price&&p.promo_price<p.price);
+    return mS&&mC&&mQ&&mP;
+  });
+
+  const promoCount=products.filter(p=>p.on_promo&&p.promo_price).length;
+
+  if(view==='admin'&&adminUser)return(
+    <>
+      <nav className="nav">
+        <div className="nav-logo" onClick={()=>setView('store')}><div className="logo-icon">⚡</div>ROBOTECH <span style={{color:'var(--orange)',marginLeft:4}}>FRACTAL</span></div>
+        <div className="nav-links"><button className="nav-link" onClick={()=>setView('store')}>← Tienda</button></div>
+        <div className="nav-right"><ThemeToggle theme={theme} onToggle={toggleTheme}/></div>
+      </nav>
+      <NotifContainer notifs={notifs} onDismiss={id=>{setNotifs(prev=>prev.map(n=>n.id===id?{...n,exit:true}:n));setTimeout(()=>setNotifs(prev=>prev.filter(n=>n.id!==id)),350)}}/>
+      <AdminPanel user={adminUser} products={products} orders={orders} onLogout={handleLogout} onRefresh={()=>fetchProducts(true)}/>
+    </>
+  );
+
+  return(
+    <>
+      <nav className="nav">
+        <div className="nav-logo" onClick={()=>setView('store')}><div className="logo-icon">⚡</div>ROBOTECH <span style={{color:'var(--orange)',marginLeft:4}}>FRACTAL</span></div>
+        <div className="nav-links">
+          <button className={`nav-link${view==='store'&&activeSection==='all'?' active':''}`} onClick={()=>{setView('store');setActiveSection('all');setActiveCategory('all')}}>INICIO</button>
+          <button className="nav-link services-link" onClick={()=>setView('servicios')}>SERVICIOS</button>
+          <button className="nav-link" onClick={()=>goToSection('electronica')} style={{color:activeSection==='electronica'?'var(--cyan)':undefined}}>ELECTRÓNICA</button>
+          <button className="nav-link" onClick={()=>goToSection('robotica')} style={{color:activeSection==='robotica'?'var(--cyan)':undefined}}>ROBÓTICA</button>
+          <button className="nav-link" onClick={()=>goToSection('computacion')} style={{color:activeSection==='computacion'?'var(--cyan)':undefined}}>COMPUTACIÓN</button>
+          <button className="nav-link" onClick={()=>{setView('store');setTimeout(()=>document.getElementById('info')?.scrollIntoView({behavior:'smooth'}),50)}}>ENVÍOS</button>
+        </div>
+        <div className="nav-right">
+          <ThemeToggle theme={theme} onToggle={toggleTheme}/>
+          <button className="cart-btn" onClick={()=>setShowCart(true)}>
+            🛒
+            {cartCount>0&&<span className="cart-badge">{cartCount}</span>}
+            {cartCount>0&&<span className="cart-count-label">{cartCount}</span>}
+          </button>
+          <button className="btn-login" onClick={()=>setShowLogin(true)}><span className="admin-icon">⬡</span><span className="admin-label"> ADMIN</span></button>
+        </div>
+      </nav>
+
+      {view==='servicios'&&<ServicesPage onBack={()=>setView('store')}/>}
+
+      {view==='store'&&(
+        <>
+          {/* HERO */}
+          <section className="hero">
+            <div className="hero-grid"/>
+            <div style={{position:'absolute',right:'5%',top:'20%',opacity:.05,fontSize:'300px',lineHeight:1,pointerEvents:'none',userSelect:'none',color:'var(--cyan)'}}>⬡</div>
+            <div style={{position:'absolute',left:'3%',bottom:'15%',opacity:.04,fontSize:'200px',lineHeight:1,pointerEvents:'none',userSelect:'none',color:'var(--cyan)'}}>⬡</div>
+            <div className="hero-content">
+              <div className="hero-badge"><span className="badge-dot"/>COMPONENTES ELECTRÓNICOS · ROBÓTICA · COMPUTACIÓN</div>
+              <h1 className="hero-title">LA TIENDA TECH<br/><span className="glow">DEL FUTURO</span><span className="fractal">FRACTAL STORE</span></h1>
+              <p className="hero-sub">Raspberry Pi, Arduino, STM32, Sensores, Robots y mucho más.<br/><strong>Envíos a todo Ecuador.</strong> Stock real y actualizado.</p>
+              <div className="hero-cta">
+                <button className="btn-primary" onClick={()=>document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})}>EXPLORAR PRODUCTOS</button>
+                <button className="btn-services" onClick={()=>setView('servicios')}>VER SERVICIOS</button>
+                <button className="btn-secondary" onClick={()=>document.getElementById('info')?.scrollIntoView({behavior:'smooth'})}>ENVÍOS & PAGOS</button>
+              </div>
+            </div>
+          </section>
+
+          {/* STATS */}
+          <div className="stats-bar">
+            <div className="stat-item"><span className="stat-num">+500</span><span className="stat-label">Componentes</span></div>
+            <div className="stat-item"><span className="stat-num">3</span><span className="stat-label">Servicios</span></div>
+            <div className="stat-item"><span className="stat-num">24hs</span><span className="stat-label">Impresión 3D</span></div>
+            <div className="stat-item"><span className="stat-num">100%</span><span className="stat-label">Ecuador</span></div>
+          </div>
+
+          {/* PRODUCTS */}
+          <section id="productos" className="section">
+            <div className="section-header">
+              <span className="section-tag">Catálogo completo</span>
+              <h2 className="section-title">
+                {activeSection==='all'?<>NUESTROS <em>PRODUCTOS</em></>:activeSection==='electronica'?<>COMPONENTES <em>ELECTRÓNICOS</em></>:activeSection==='robotica'?<>ROBÓTICA <em>& EDUCACIÓN</em></>:<>COMPUTACIÓN <em>& CELULARES</em></>}
+              </h2>
+            </div>
+
+            <div style={{display:'flex',gap:7,marginBottom:20,flexWrap:'wrap'}}>
+              {SECTIONS.map(s=>(
+                <button key={s.id} onClick={()=>{setActiveSection(s.id);setActiveCategory('all')}} style={{padding:'7px 16px',fontFamily:'Share Tech Mono,monospace',fontSize:'.72rem',letterSpacing:'.1em',cursor:'pointer',transition:'.3s',border:'1px solid',background:activeSection===s.id?'var(--cyan)':'var(--glass)',borderColor:activeSection===s.id?'var(--cyan)':'var(--glass-border)',color:activeSection===s.id?'#fff':'var(--muted)',fontWeight:activeSection===s.id?700:400,clipPath:'polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))'}}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
+            <div style={{display:'flex',gap:12,alignItems:'flex-start',flexWrap:'wrap',marginBottom:8}}>
+              <div className="search-wrap">
+                <input placeholder="🔍  Buscar productos..." value={searchInput} onChange={e=>setSearchInput(e.target.value)}/>
+                {searchInput?<button className="search-clear" onClick={()=>{setSearchInput('');setSearch('')}}>✕</button>:<span className="search-icon"/>}
+              </div>
+              <div className="filter-pills">
+                {promoCount>0&&(
+                  <button className={`filter-pill${promoFilter?' active':''}`} onClick={()=>setPromoFilter(v=>!v)}>
+                    <span className="pill-dot"/>🔥 EN PROMO ({promoCount})
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="cat-scroll-wrap">
+              <div className="categories-grid">
+                {visibleCats.map(cat=>(
+                  <div key={cat.id} className={`cat-card${activeCategory===cat.id?' active':''}`} onClick={()=>setActiveCategory(cat.id)}>
+                    <span className="cat-icon">{cat.icon}</span>
+                    <span className="cat-name">{cat.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {loading
+              ?<div className="loader"><div className="loader-dot"/><div className="loader-dot"/><div className="loader-dot"/></div>
+              :filtered.length===0
+                ?<div style={{textAlign:'center',padding:'60px',color:'var(--muted)',fontFamily:'Share Tech Mono,monospace'}}>
+                  {products.length===0?'// CATÁLOGO_VACÍO — El admin está cargando productos':'// NO_RESULTS — Intenta otra búsqueda'}
+                </div>
+                :<div className="products-grid">
+                  {filtered.map(p=><ProductCard key={p.id} product={p} onAddToCart={addToCart} cartQty={getCartQty(p.id)} onDetail={setDetailProduct}/>)}
+                </div>
+            }
+          </section>
+
+          {/* INFO */}
+          <section id="info" style={{background:'var(--glass)',borderTop:'1px solid var(--glass-border)',borderBottom:'1px solid var(--glass-border)'}}>
+            <div className="section" style={{paddingTop:60,paddingBottom:60}}>
+              <div className="section-header">
+                <span className="section-tag">Información importante</span>
+                <h2 className="section-title">ENVÍOS & <em>FORMAS DE PAGO</em></h2>
+              </div>
+              <div className="info-grid">
+                <div className="info-card"><span className="info-card-icon">🚀</span><div className="info-card-title">ENVÍOS A TODO ECUADOR</div><div className="info-card-text">Despachamos a todo el territorio. Tiempo estimado: <strong>2 a 5 días hábiles</strong>.</div></div>
+                <div className="info-card"><span className="info-card-icon">💳</span><div className="info-card-title">FORMAS DE PAGO</div><div className="info-card-text"><span className="tag-pill">🏦 Transferencia</span><span className="tag-pill">💵 Efectivo</span><br/><br/>Datos de cuenta al confirmar por WhatsApp.</div></div>
+                <div className="info-card"><span className="info-card-icon">📦</span><div className="info-card-title">¿CÓMO COMPRAR?</div><div className="info-card-text"><strong>1.</strong> Clic en un producto → ver detalle.<br/><strong>2.</strong> Agrega al carrito.<br/><strong>3.</strong> Finaliza por WhatsApp.<br/><strong>4.</strong> Confirmamos stock y enviamos datos.</div></div>
+              </div>
+            </div>
+          </section>
+
+          {/* CONTACT */}
+          <section id="contacto" className="section">
+            <div className="section-header"><span className="section-tag">Contacto directo</span><h2 className="section-title">HABLEMOS <em>HOY</em></h2></div>
+            <div className="info-grid" style={{maxWidth:900}}>
+              <div className="info-card" style={{textAlign:'center'}}>
+                <span className="info-card-icon">📱</span>
+                <div className="info-card-title">WHATSAPP</div>
+                <a href={`https://wa.me/${WA_NUMBER}`} target="_blank" rel="noreferrer" style={{display:'block',color:'var(--green)',fontSize:'1.15rem',fontWeight:700,textDecoration:'none',marginTop:7}}>+593 990 163 527</a>
+              </div>
+              <div className="info-card" style={{textAlign:'center'}}>
+                <span className="info-card-icon">✉️</span>
+                <div className="info-card-title">EMAIL</div>
+                <div style={{color:'var(--cyan)',fontSize:'1rem',fontWeight:600,marginTop:7}}>info@robotechfractal.com</div>
+              </div>
+
+              {/* ── LOGIN CARD ── */}
+              <div className="login-contact-card">
+                <span className="info-card-icon" style={{display:'block',fontSize:'1.9rem',marginBottom:14}}>⬡</span>
+                <div className="info-card-title" style={{fontFamily:'Orbitron,sans-serif',fontSize:'.88rem',fontWeight:700,color:'var(--cyan)',marginBottom:9,letterSpacing:'.08em'}}>PANEL ADMIN</div>
+                <div className="info-card-text" style={{fontSize:'.88rem',color:'var(--muted)',lineHeight:1.7}}>
+                  Acceso exclusivo para administradores de la tienda.
+                </div>
+                <button className="btn-login-card" onClick={()=>setShowLogin(true)}>
+                  <span>⬡</span><span>INGRESAR AL PANEL</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <footer>
+            <div className="footer-logo">⚡ ROBOTECH STORE FRACTAL</div>
+            <div className="footer-text">Electrónica · Robótica · Computación · Impresión 3D · Fabricación PCB · Ecuador</div>
+            <div style={{marginTop:18,fontFamily:'Share Tech Mono,monospace',fontSize:'.63rem',color:'var(--muted)',opacity:.5}}>SYS_STATUS: ONLINE · BUILD_2025 · v3.0_ULTIMATE</div>
+          </footer>
+        </>
+      )}
+
+      {detailProduct&&<ProductDetail product={detailProduct} onClose={()=>setDetailProduct(null)} onAddToCart={addToCart} cartQty={getCartQty(detailProduct.id)}/>}
+      {showCart&&<CartPanel cart={cart} onClose={()=>setShowCart(false)} onQtyChange={changeQty} onRemove={removeFromCart} onClearCart={clearCart} onCheckout={()=>{setShowCart(false);setShowCheckout(true)}}/>}
+      {showCheckout&&<CheckoutModal cart={cart} onClose={()=>setShowCheckout(false)} onSuccess={handleOrderSuccess}/>}
+      {showLogin&&<LoginModal onClose={()=>setShowLogin(false)} onLogin={handleLogin}/>}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

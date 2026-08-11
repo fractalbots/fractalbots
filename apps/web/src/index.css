@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --acc: #1e9ad7;
+  }
+  * {
+    @apply box-border;
+  }
+  body {
+    @apply m-0 bg-ink font-body text-[17px] leading-relaxed text-white antialiased;
+  }
+  html,
+  body {
+    overflow-x: clip;
+  }
+  body.locked {
+    @apply overflow-hidden;
+  }
+  a {
+    @apply text-inherit no-underline;
+  }
+  ::selection {
+    @apply bg-fb-orange text-white;
+  }
+  :focus-visible {
+    outline: 2px solid theme("colors.fb.sky");
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .wrap {
+    @apply relative mx-auto w-[90vw] max-w-[1300px];
+  }
+  .sec {
+    @apply relative py-[clamp(84px,11vw,170px)];
+  }
+  .display {
+    @apply m-0 font-display font-extrabold uppercase leading-[.86] tracking-[-.035em];
+    font-variation-settings: "wdth" 88;
+  }
+  .d-xl {
+    @apply text-[clamp(2.9rem,10.5vw,9.2rem)];
+  }
+  .d-lg {
+    @apply text-[clamp(2.3rem,6.6vw,5.6rem)];
+  }
+  .d-md {
+    @apply text-[clamp(1.8rem,3.9vw,3.3rem)];
+  }
+  .eyebrow {
+    @apply m-0 mb-6 flex items-center gap-[.7em] font-mono text-[.68rem] font-medium uppercase tracking-[.26em];
+  }
+  .eyebrow::before {
+    content: "";
+    @apply h-px w-[26px] flex-none bg-current opacity-60;
+  }
+  .lead {
+    @apply m-0 max-w-[62ch] text-[clamp(1.05rem,1.45vw,1.3rem)];
+  }
+  .chip-tag {
+    @apply rounded-full border border-white/10 px-[11px] py-[6px] font-mono text-[.66rem] uppercase tracking-[.09em] text-white/70;
+  }
+  .btn {
+    @apply inline-flex cursor-pointer items-center gap-[.6em] rounded-full border-0 bg-white px-6 py-[14px] font-mono text-[.74rem] font-medium uppercase tracking-[.13em] text-ink transition-[transform,background,color] duration-300 ease-soft will-change-transform hover:bg-fb-cyan hover:text-white;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.14)] hover:bg-white hover:text-ink hover:shadow-none;
+  }
+  .btn-orange {
+    @apply bg-fb-orange text-white hover:bg-white hover:text-ink;
+  }
+  .btn-ghost-dark {
+    @apply bg-transparent text-ink shadow-[inset_0_0_0_1px_rgba(7,10,17,.16)] hover:bg-ink hover:text-white hover:shadow-none;
+  }
+}
+
+@layer utilities {
+  /* Reveal por palabra */
+  .rv-word {
+    @apply inline-block overflow-hidden align-bottom;
+    /* Espacio para tildes y diacríticos: el overflow:hidden recortaba Á, Ó, Í.
+       El margen negativo compensa para no alterar el ritmo vertical. */
+    padding-top: 0.16em;
+    margin-top: -0.16em;
+  }
+  .rv-word > span {
+    @apply inline-block translate-y-[105%] rotate-[4deg] opacity-0;
+    transition: transform 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .is-in .rv-word > span {
+    @apply translate-y-0 rotate-0 opacity-100;
+  }
+  .fade-up {
+    @apply translate-y-7 opacity-0;
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fade-up.is-in {
+    @apply translate-y-0 opacity-100;
+  }
+  .grid-lines {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 62% at 50% 45%, #000 35%, transparent 78%);
+    mask-image: radial-gradient(ellipse 70% 62% at 50% 45%, #000 35%, transparent 78%);
+  }
+  .grid-fine {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .dots {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+  .hatch {
+    background-image: repeating-linear-gradient(
+      115deg,
+      transparent 0 12px,
+      rgba(255, 255, 255, 0.06) 12px 13px
+    );
+  }
+  .acc-glow {
+    background: radial-gradient(
+      90% 80% at 80% 10%,
+      color-mix(in srgb, var(--acc) 45%, transparent),
+      transparent 60%
+    );
+  }
+  .spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.45s;
+    background: radial-gradient(
+      280px circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in srgb, var(--acc) 40%, transparent),
+      transparent 65%
+    );
+  }
+  .spotlight:hover::before {
+    opacity: 1;
+  }
+  .text-outline {
+    color: transparent;
+    -webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.7);
+  }
+  .hero-frame-init {
+    clip-path: polygon(29% 26%, 71% 26%, 71% 74%, 29% 74%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .rv-word > span,
+  .fade-up {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

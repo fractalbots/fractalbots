@@ -1,0 +1,17 @@
+Pon aquí tus fotos con estos nombres exactos:
+
+  img1.jpg
+  img2.jpg
+  img3.jpg
+  img4.jpg
+  img5.jpg
+  img6.jpg
+
+Aparecerán solas en el carrusel de la página, en ese orden.
+Mientras falte alguna, esa tarjeta muestra un degradado con el
+nombre del archivo que espera (IMG1.JPG, IMG2.JPG...).
+
+Los títulos y pies de foto se cambian en:
+  src/data/content.js  ->  const GALERIA
+
+Proporción ideal 4:3, mínimo 1000 px de ancho.
