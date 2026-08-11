@@ -3,8 +3,8 @@
    Cambia estas dos URLs si el despliegue se mueve de sitio.
    ───────────────────────────────────────────────────────────── */
 export const ENLACES = {
-  sistema: "https://fractalbots.vercel.app",          // plataforma de gestión
-  tienda: "https://tobotech.vercel.app",              // ToboTech
+  sistema: "https://sistema.fractalbotsecua.com",     // plataforma de gestión
+  tienda: "https://tienda.fractalbotsecua.com",       // ToboTech
   repo: "https://github.com/fractalbots/fractalbots", // código fuente
 };
 
@@ -94,7 +94,7 @@ export const LINEAS = [
     texto:
       "Desarrollamos software, sistemas y prototipos para personas, instituciones educativas y organizaciones que necesitan digitalizar o automatizar procesos.",
     items: ["Software", "Sistemas académicos", "IA aplicada", "Automatización", "Electrónica", "IoT", "Prototipado", "Integraciones"],
-    enlace: "https://fractalbots.vercel.app",
+    enlace: ENLACES.sistema,
     enlaceTexto: "Ver la plataforma",
   },
   {
@@ -104,7 +104,7 @@ export const LINEAS = [
     texto:
       "Componentes para creadores. No solamente vendemos piezas: sabemos para qué sirven, porque detrás de cada componente hay un proyecto.",
     items: ["Componentes", "Sensores", "Actuadores", "Kits", "Equipamiento", "Fabricación digital"],
-    enlace: "https://tobotech.vercel.app",
+    enlace: ENLACES.tienda,
     enlaceTexto: "Ir a la tienda",
   },
 ];
