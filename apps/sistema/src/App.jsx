@@ -1,4 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  SB_URL, SB_KEY, api, apiGet, apiPost, apiPatch, apiDelete,
+  apiInsertMinimal, apiRpc, authHeaders, setToken,
+} from "./api";
+import { Torneos, InscripcionPublica } from "./Torneos";
+
 
 /* ============================================================
    FractalBots · Panel de gestión (avance funcional)
@@ -7,51 +13,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
    sobre degradado morado→turquesa.
    ============================================================ */
 
-const SB_URL = "https://asqtoedpwmrztuzkjqkp.supabase.co";
-const SB_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcXRvZWRwd21yenR1emtqcWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNjI4NzAsImV4cCI6MjA5OTYzODg3MH0.wkyBoEDEGYm3QtE3IKSnH7E_Xs4pxAynuFNIu0v9nFw";
-
 const LOGO = "https://fractalbots2016.web.app/images/logo.png";
-
-const H = {
-  apikey: SB_KEY,
-  Authorization: `Bearer ${SB_KEY}`,
-  "Content-Type": "application/json",
-};
-
-// Token de sesión en memoria (se llena al iniciar sesión)
-let AUTH_TOKEN = null;
-function authHeaders(extra = {}) {
-  return {
-    apikey: SB_KEY,
-    Authorization: `Bearer ${AUTH_TOKEN || SB_KEY}`,
-    "Content-Type": "application/json",
-    ...extra,
-  };
-}
-
-async function api(path, opts = {}) {
-  const res = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: authHeaders(), ...opts });
-  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
-  const txt = await res.text();
-  return txt ? JSON.parse(txt) : null;
-}
-const apiGet = (p) => api(p);
-const apiPost = (table, body) =>
-  api(table, { method: "POST", headers: authHeaders({ Prefer: "return=representation" }), body: JSON.stringify(body) });
-const apiPatch = (table, id, body) =>
-  api(`${table}?id=eq.${id}`, { method: "PATCH", headers: authHeaders({ Prefer: "return=representation" }), body: JSON.stringify(body) });
-const apiDelete = (table, id) => api(`${table}?id=eq.${id}`, { method: "DELETE", headers: authHeaders() });
-
-// Inserción pública (no devuelve la fila; evita requerir permiso de lectura para el anónimo)
-async function apiInsertMinimal(table, body) {
-  const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
-    method: "POST",
-    headers: authHeaders({ Prefer: "return=minimal" }),
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
-}
 
 // --- Autenticación (Supabase Auth / GoTrue) ---
 async function login(email, password) {
@@ -62,11 +24,11 @@ async function login(email, password) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error_description || data.msg || "Credenciales inválidas");
-  AUTH_TOKEN = data.access_token;
+  setToken(data.access_token);
   const perfil = await apiGet(`perfiles?id=eq.${data.user.id}&select=nombres,apellidos,rol`);
   return { email: data.user.email, ...(perfil?.[0] || {}) };
 }
-function logout() { AUTH_TOKEN = null; }
+function logout() { setToken(null); }
 
 const fmtMs = (ms) => (ms == null ? "—" : (ms / 1000).toFixed(3) + " s");
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ") : s);
@@ -252,8 +214,13 @@ export default function App() {
   const [view, setView] = useState("dashboard");
 
   // Ruta pública: si la URL trae ?formulario=<slug>, se muestra el formulario para llenar (sin login)
-  const publicSlug = new URLSearchParams(window.location.search).get("formulario");
+  const params = new URLSearchParams(window.location.search);
+  const publicSlug = params.get("formulario");
   if (publicSlug) return <><Styles /><FormFill slug={publicSlug} /></>;
+
+  // Inscripción pública a un torneo: ?torneo=<slug>, sin sesión
+  const torneoSlug = params.get("torneo");
+  if (torneoSlug) return <><Styles /><InscripcionPublica slug={torneoSlug} /></>;
 
   const nav = [
     { id: "dashboard", label: "Dashboard", icon: "◉" },
@@ -263,6 +230,7 @@ export default function App() {
     { id: "cursos", label: "Cursos", icon: "▤" },
     { id: "certificados", label: "Certificados", icon: "❖" },
     { id: "formularios", label: "Formularios", icon: "▦" },
+    { id: "torneos", label: "Torneos", icon: "🏆" },
     { id: "torneo", label: "Torneo en vivo", icon: "⏱" },
   ];
 
@@ -308,6 +276,7 @@ export default function App() {
         {ENTITIES[view] && <ResourceView key={view} entityKey={view} config={ENTITIES[view]} />}
         {view === "certificados" && <Certificados />}
         {view === "formularios" && <Formularios />}
+        {view === "torneos" && <Torneos />}
         {view === "torneo" && <Torneo />}
       </main>
     </div>
@@ -1176,6 +1145,104 @@ function Styles() {
       .fb-login-btn { width:100%; margin-top:8px; padding:11px; font-size:14px; }
       .fb-login-btn:disabled { opacity:.6; cursor:default; }
 
+
+      /* ═══ MÓDULO DE TORNEOS ═══════════════════════════════════ */
+      .fb-grid-cards{ display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); }
+      .fb-torneo-card{ cursor:pointer; transition:transform .25s, box-shadow .25s, border-color .25s; }
+      .fb-torneo-card:hover{ transform:translateY(-3px); box-shadow:0 12px 30px rgba(32,38,58,.10); border-color:var(--blue); }
+      .fb-torneo-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+      .fb-torneo-name{ margin:0 0 6px; font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:700; color:var(--text); }
+
+      .fb-chip{ display:inline-block; padding:4px 10px; border-radius:99px; background:var(--surface2);
+                border:1px solid var(--border); font-size:.68rem; font-weight:600; color:var(--muted);
+                text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+      .fb-chip.ok{ background:rgba(67,176,42,.10); border-color:rgba(67,176,42,.35); color:#2F7D1E; }
+      .fb-chip.no{ background:rgba(226,73,73,.10); border-color:rgba(226,73,73,.35); color:#B93030; }
+
+      .fb-actions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+      .fb-mb{ margin-bottom:14px; }
+      .fb-sep{ margin:18px 0 10px; padding-top:14px; border-top:1px solid var(--border);
+               font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+
+      .fb-row-2{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+      .fb-row-3{ display:grid; gap:12px; grid-template-columns:repeat(3,1fr); }
+      @media (max-width:640px){ .fb-row-2,.fb-row-3{ grid-template-columns:1fr; } }
+
+      .fb-check{ display:flex; align-items:center; gap:9px; margin:12px 0; font-size:.9rem; cursor:pointer; }
+      .fb-check input{ width:17px; height:17px; accent-color:var(--blue); }
+
+      .fb-link-box{ display:flex; justify-content:space-between; align-items:center; gap:18px;
+                    flex-wrap:wrap; margin-bottom:16px; }
+      .fb-code-inline{ display:inline-block; margin-top:8px; padding:7px 11px; border-radius:7px;
+                       background:var(--surface2); border:1px solid var(--border);
+                       font-family:'JetBrains Mono',monospace; font-size:.74rem; color:var(--text);
+                       word-break:break-all; }
+
+      .fb-warn{ padding:12px 15px; border-radius:9px; margin:12px 0; font-size:.87rem;
+                background:rgba(245,129,31,.09); border:1px solid rgba(245,129,31,.32); color:#96500D; }
+      .fb-error{ padding:11px 14px; border-radius:9px; margin:12px 0; font-size:.87rem;
+                 background:rgba(226,73,73,.09); border:1px solid rgba(226,73,73,.32); color:#B93030; }
+      .fb-ok{ padding:11px 14px; border-radius:9px; margin:12px 0; font-size:.87rem;
+              background:rgba(67,176,42,.09); border:1px solid rgba(67,176,42,.32); color:#2F7D1E; }
+
+      .fb-insc-row{ display:flex; align-items:center; gap:14px; padding:14px 18px;
+                    border-bottom:1px solid var(--border); }
+      .fb-insc-row:last-child{ border-bottom:none; }
+      .fb-insc-main{ flex:1; min-width:0; cursor:pointer; }
+      .fb-insc-name{ font-weight:600; color:var(--text); }
+      .fb-insc-robot{ color:var(--muted); font-weight:400; }
+
+      .fb-btn-mini{ padding:6px 13px; border-radius:7px; border:1px solid var(--border);
+                    background:var(--surface); color:var(--text); font-size:.76rem; font-weight:600;
+                    cursor:pointer; transition:.2s; white-space:nowrap; }
+      .fb-btn-mini:hover{ border-color:var(--blue); color:var(--blue); }
+      .fb-btn-mini.ok{ background:var(--green); border-color:var(--green); color:#fff; }
+      .fb-btn-mini.ok:hover{ opacity:.86; color:#fff; }
+      .fb-btn-mini.no{ background:transparent; border-color:rgba(226,73,73,.45); color:#B93030; }
+      .fb-btn-mini.no:hover{ background:rgba(226,73,73,.08); color:#B93030; }
+      .fb-btn-block{ width:100%; justify-content:center; margin-top:8px; }
+
+      .fb-limites{ margin-bottom:14px; }
+      .fb-limites-row{ display:flex; flex-wrap:wrap; gap:16px; margin:8px 0; font-size:.82rem; color:var(--text); }
+      .fb-input-error{ border-color:#E24949 !important; background:rgba(226,73,73,.05); }
+      .fb-input-ok{ border-color:rgba(67,176,42,.55) !important; }
+
+      .fb-dato{ display:flex; justify-content:space-between; gap:14px; padding:8px 0;
+                border-bottom:1px solid var(--border); font-size:.88rem; }
+      .fb-dato:last-of-type{ border-bottom:none; }
+
+      /* ── Ventanas modales ── */
+      .fb-modal-bg{ position:fixed; inset:0; z-index:900; background:rgba(20,24,38,.55);
+                    backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:20px; }
+      .fb-modal{ width:100%; max-height:92vh; overflow-y:auto; background:var(--surface);
+                 border-radius:16px; box-shadow:0 24px 60px rgba(20,24,38,.28); }
+      .fb-modal-head{ position:sticky; top:0; z-index:2; display:flex; justify-content:space-between;
+                      align-items:center; gap:14px; padding:18px 22px; background:var(--surface);
+                      border-bottom:1px solid var(--border); }
+      .fb-modal-head h3{ margin:0; font-family:'Space Grotesk',sans-serif; font-size:1.02rem; font-weight:700; }
+      .fb-modal-x{ width:32px; height:32px; border-radius:50%; border:1px solid var(--border);
+                   background:transparent; cursor:pointer; color:var(--muted); font-size:.9rem; }
+      .fb-modal-x:hover{ border-color:var(--blue); color:var(--blue); }
+      .fb-modal-body{ padding:20px 22px 24px; }
+      .fb-modal-actions{ display:flex; justify-content:flex-end; gap:9px; margin-top:20px; flex-wrap:wrap; }
+
+      /* ── Pantalla pública de inscripción ── */
+      .fb-pub-bg{ min-height:100vh; padding:32px 18px; background:var(--grad);
+                  display:flex; align-items:center; justify-content:center;
+                  font-family:'Inter',system-ui,sans-serif; }
+      .fb-pub-card{ width:100%; max-width:660px; background:#fff; border-radius:20px;
+                    padding:clamp(24px,4vw,42px); box-shadow:0 26px 70px rgba(20,24,38,.28); }
+      .fb-pub-eyebrow{ font-size:.68rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+                       color:var(--blue); margin-bottom:9px; }
+      .fb-pub-title{ margin:0 0 8px; font-family:'Space Grotesk',sans-serif; font-size:clamp(1.4rem,3.4vw,2rem);
+                     font-weight:700; color:var(--text); line-height:1.15; }
+      .fb-pub-desc{ margin:14px 0 20px; font-size:.92rem; color:var(--text); line-height:1.65; }
+      .fb-reglas{ margin:16px 0; padding:15px 17px; border-radius:11px;
+                  background:var(--surface2); border:1px solid var(--border); }
+      .fb-reglas ul{ margin:8px 0 6px; padding-left:19px; font-size:.87rem; line-height:1.75; }
+      .fb-ok-mark{ width:56px; height:56px; margin-bottom:16px; border-radius:50%;
+                   display:grid; place-items:center; font-size:1.6rem; color:#fff; background:var(--green); }
+
       @media (max-width:820px){ .fb-app{ grid-template-columns:1fr; } .fb-sidebar{ flex-direction:row; overflow:auto; } .fb-two-col{ grid-template-columns:1fr; } .fb-main{ padding:20px; } .fb-user{ margin-top:0; } }
       .fb-dot { width:8px; height:8px; border-radius:50%; background:#7CF0D8; animation:pulse 1.8s infinite; }
       @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(124,240,216,.6);} 70%{box-shadow:0 0 0 7px rgba(124,240,216,0);} 100%{box-shadow:0 0 0 0 rgba(124,240,216,0);} }
@@ -1248,6 +1315,104 @@ function Styles() {
       .fb-rank-name { font-weight:600; font-size:15px; }
       .fb-rank-inst { font-size:12px; color:var(--muted); }
       .fb-rank-time { font-size:20px; font-weight:700; color:var(--teal); }
+
+
+      /* ═══ MÓDULO DE TORNEOS ═══════════════════════════════════ */
+      .fb-grid-cards{ display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); }
+      .fb-torneo-card{ cursor:pointer; transition:transform .25s, box-shadow .25s, border-color .25s; }
+      .fb-torneo-card:hover{ transform:translateY(-3px); box-shadow:0 12px 30px rgba(32,38,58,.10); border-color:var(--blue); }
+      .fb-torneo-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+      .fb-torneo-name{ margin:0 0 6px; font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:700; color:var(--text); }
+
+      .fb-chip{ display:inline-block; padding:4px 10px; border-radius:99px; background:var(--surface2);
+                border:1px solid var(--border); font-size:.68rem; font-weight:600; color:var(--muted);
+                text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+      .fb-chip.ok{ background:rgba(67,176,42,.10); border-color:rgba(67,176,42,.35); color:#2F7D1E; }
+      .fb-chip.no{ background:rgba(226,73,73,.10); border-color:rgba(226,73,73,.35); color:#B93030; }
+
+      .fb-actions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+      .fb-mb{ margin-bottom:14px; }
+      .fb-sep{ margin:18px 0 10px; padding-top:14px; border-top:1px solid var(--border);
+               font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+
+      .fb-row-2{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+      .fb-row-3{ display:grid; gap:12px; grid-template-columns:repeat(3,1fr); }
+      @media (max-width:640px){ .fb-row-2,.fb-row-3{ grid-template-columns:1fr; } }
+
+      .fb-check{ display:flex; align-items:center; gap:9px; margin:12px 0; font-size:.9rem; cursor:pointer; }
+      .fb-check input{ width:17px; height:17px; accent-color:var(--blue); }
+
+      .fb-link-box{ display:flex; justify-content:space-between; align-items:center; gap:18px;
+                    flex-wrap:wrap; margin-bottom:16px; }
+      .fb-code-inline{ display:inline-block; margin-top:8px; padding:7px 11px; border-radius:7px;
+                       background:var(--surface2); border:1px solid var(--border);
+                       font-family:'JetBrains Mono',monospace; font-size:.74rem; color:var(--text);
+                       word-break:break-all; }
+
+      .fb-warn{ padding:12px 15px; border-radius:9px; margin:12px 0; font-size:.87rem;
+                background:rgba(245,129,31,.09); border:1px solid rgba(245,129,31,.32); color:#96500D; }
+      .fb-error{ padding:11px 14px; border-radius:9px; margin:12px 0; font-size:.87rem;
+                 background:rgba(226,73,73,.09); border:1px solid rgba(226,73,73,.32); color:#B93030; }
+      .fb-ok{ padding:11px 14px; border-radius:9px; margin:12px 0; font-size:.87rem;
+              background:rgba(67,176,42,.09); border:1px solid rgba(67,176,42,.32); color:#2F7D1E; }
+
+      .fb-insc-row{ display:flex; align-items:center; gap:14px; padding:14px 18px;
+                    border-bottom:1px solid var(--border); }
+      .fb-insc-row:last-child{ border-bottom:none; }
+      .fb-insc-main{ flex:1; min-width:0; cursor:pointer; }
+      .fb-insc-name{ font-weight:600; color:var(--text); }
+      .fb-insc-robot{ color:var(--muted); font-weight:400; }
+
+      .fb-btn-mini{ padding:6px 13px; border-radius:7px; border:1px solid var(--border);
+                    background:var(--surface); color:var(--text); font-size:.76rem; font-weight:600;
+                    cursor:pointer; transition:.2s; white-space:nowrap; }
+      .fb-btn-mini:hover{ border-color:var(--blue); color:var(--blue); }
+      .fb-btn-mini.ok{ background:var(--green); border-color:var(--green); color:#fff; }
+      .fb-btn-mini.ok:hover{ opacity:.86; color:#fff; }
+      .fb-btn-mini.no{ background:transparent; border-color:rgba(226,73,73,.45); color:#B93030; }
+      .fb-btn-mini.no:hover{ background:rgba(226,73,73,.08); color:#B93030; }
+      .fb-btn-block{ width:100%; justify-content:center; margin-top:8px; }
+
+      .fb-limites{ margin-bottom:14px; }
+      .fb-limites-row{ display:flex; flex-wrap:wrap; gap:16px; margin:8px 0; font-size:.82rem; color:var(--text); }
+      .fb-input-error{ border-color:#E24949 !important; background:rgba(226,73,73,.05); }
+      .fb-input-ok{ border-color:rgba(67,176,42,.55) !important; }
+
+      .fb-dato{ display:flex; justify-content:space-between; gap:14px; padding:8px 0;
+                border-bottom:1px solid var(--border); font-size:.88rem; }
+      .fb-dato:last-of-type{ border-bottom:none; }
+
+      /* ── Ventanas modales ── */
+      .fb-modal-bg{ position:fixed; inset:0; z-index:900; background:rgba(20,24,38,.55);
+                    backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:20px; }
+      .fb-modal{ width:100%; max-height:92vh; overflow-y:auto; background:var(--surface);
+                 border-radius:16px; box-shadow:0 24px 60px rgba(20,24,38,.28); }
+      .fb-modal-head{ position:sticky; top:0; z-index:2; display:flex; justify-content:space-between;
+                      align-items:center; gap:14px; padding:18px 22px; background:var(--surface);
+                      border-bottom:1px solid var(--border); }
+      .fb-modal-head h3{ margin:0; font-family:'Space Grotesk',sans-serif; font-size:1.02rem; font-weight:700; }
+      .fb-modal-x{ width:32px; height:32px; border-radius:50%; border:1px solid var(--border);
+                   background:transparent; cursor:pointer; color:var(--muted); font-size:.9rem; }
+      .fb-modal-x:hover{ border-color:var(--blue); color:var(--blue); }
+      .fb-modal-body{ padding:20px 22px 24px; }
+      .fb-modal-actions{ display:flex; justify-content:flex-end; gap:9px; margin-top:20px; flex-wrap:wrap; }
+
+      /* ── Pantalla pública de inscripción ── */
+      .fb-pub-bg{ min-height:100vh; padding:32px 18px; background:var(--grad);
+                  display:flex; align-items:center; justify-content:center;
+                  font-family:'Inter',system-ui,sans-serif; }
+      .fb-pub-card{ width:100%; max-width:660px; background:#fff; border-radius:20px;
+                    padding:clamp(24px,4vw,42px); box-shadow:0 26px 70px rgba(20,24,38,.28); }
+      .fb-pub-eyebrow{ font-size:.68rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+                       color:var(--blue); margin-bottom:9px; }
+      .fb-pub-title{ margin:0 0 8px; font-family:'Space Grotesk',sans-serif; font-size:clamp(1.4rem,3.4vw,2rem);
+                     font-weight:700; color:var(--text); line-height:1.15; }
+      .fb-pub-desc{ margin:14px 0 20px; font-size:.92rem; color:var(--text); line-height:1.65; }
+      .fb-reglas{ margin:16px 0; padding:15px 17px; border-radius:11px;
+                  background:var(--surface2); border:1px solid var(--border); }
+      .fb-reglas ul{ margin:8px 0 6px; padding-left:19px; font-size:.87rem; line-height:1.75; }
+      .fb-ok-mark{ width:56px; height:56px; margin-bottom:16px; border-radius:50%;
+                   display:grid; place-items:center; font-size:1.6rem; color:#fff; background:var(--green); }
 
       @media (max-width:820px){ .fb-app{ grid-template-columns:1fr; } .fb-sidebar{ flex-direction:row; overflow:auto; } .fb-two-col{ grid-template-columns:1fr; } .fb-main{ padding:20px; } }
     `}</style>
