@@ -1,0 +1,22 @@
+VÍDEOS DE LA WEB
+
+  hero.mp4       Banner principal (la ventana que se abre al bajar)
+  sistema.mp4    Tarjeta "Sistema Académico"    en Proyectos
+  tienda.mp4     Tarjeta "ToboTech"             en Proyectos
+  torneo.mp4     Tarjeta "Cronometría IoT"      en Proyectos
+  robots.mp4     Tarjeta "Robots de competencia" en Proyectos
+
+Los pósteres (primer fotograma) van en  public/img/proyectos/
+con el mismo nombre pero .jpg:  sistema.jpg, tienda.jpg, torneo.jpg, robots.jpg
+
+RECOMENDACIONES
+  - 5 a 10 segundos, en bucle, SIN audio (los navegadores bloquean
+    la reproducción automática con sonido)
+  - Menos de 1 MB cada uno
+  - Proporción 16:10 aprox.
+
+COMPRIMIR
+  ffmpeg -i original.mp4 -vf scale=1100:-2 -crf 31 -an -movflags +faststart salida.mp4
+
+SACAR EL PÓSTER DEL PROPIO VÍDEO
+  ffmpeg -i torneo.mp4 -frames:v 1 torneo.jpg

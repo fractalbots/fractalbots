@@ -1,0 +1,17 @@
+Imágenes de fondo de cada área del ecosistema.
+Se muestran translúcidas detrás del texto de cada tarjeta.
+
+Nombres exactos:
+
+  automatizacion.jpg   Robots, brazos, línea de producción
+  software.jpg         Pantallas de código o del sistema
+  ia.jpg               Visión artificial, cámaras, datos
+  impresion3d.jpg      Impresora 3D trabajando, piezas
+  electronica.jpg      Placas, protoboard, cables, sensores
+  educacion.jpg        Estudiantes en clase con robots
+  makerspace.jpg       Espacio de trabajo, mesas, herramienta
+  soporte.jpg          Cámaras CCTV, equipos, taller técnico
+
+Si falta alguna, esa tarjeta usa un degradado de marca.
+Se ven mejor las fotos oscuras o con poco fondo claro.
+Mínimo 900 px de ancho, menos de 300 KB cada una.

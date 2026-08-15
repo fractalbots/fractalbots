@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { isTouch, prefersReducedMotion } from "../lib/hooks";
+import { usePointerWhenVisible } from "../lib/pointer";
 
 /**
  * Campo de átomos/burbujas de fondo.
@@ -44,24 +44,10 @@ export default function Particles({ count = 26, seed = 7, depth = 16, className 
 
   useEffect(() => {
     const el = root.current;
-    if (!el || isTouch() || prefersReducedMotion()) return;
-    let raf, tx = 0, ty = 0, cx = 0, cy = 0;
-    const move = (e) => {
-      tx = (e.clientX / window.innerWidth - 0.5) * 2;
-      ty = (e.clientY / window.innerHeight - 0.5) * 2;
-    };
-    const loop = () => {
-      cx += (tx - cx) * 0.05;
-      cy += (ty - cy) * 0.05;
+    if (!el) return;
+    return usePointerWhenVisible(el, (cx, cy) => {
       el.style.transform = `translate3d(${-cx * depth}px, ${-cy * depth}px, 0)`;
-      raf = requestAnimationFrame(loop);
-    };
-    window.addEventListener("mousemove", move, { passive: true });
-    loop();
-    return () => {
-      window.removeEventListener("mousemove", move);
-      cancelAnimationFrame(raf);
-    };
+    });
   }, [depth]);
 
   const nodes = useNodes(count, seed);

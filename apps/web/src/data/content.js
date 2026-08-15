@@ -109,23 +109,60 @@ export const LINEAS = [
   },
 ];
 
+/* ─────────────────────────────────────────────────────────────
+   ÁREAS DEL ECOSISTEMA
+
+   Cada tarjeta se abre al hacer clic y muestra el detalle completo.
+
+   IMÁGENES DE FONDO: guárdalas en  public/img/areas/  con el nombre
+   que indica el campo "img". Se muestran translúcidas detrás del texto.
+   Si el archivo no existe, la tarjeta usa un degradado de marca.
+   Proporción libre, mínimo 900 px de ancho.
+   ───────────────────────────────────────────────────────────── */
 export const BENTO = [
   {
-    tag: "Educación tecnológica",
-    titulo: "Centro de robótica educativa",
-    texto:
-      "Programas por niveles para niños, jóvenes y adultos. Electrónica, programación, diseño mecánico, fabricación digital e inteligencia artificial, siempre construyendo proyectos propios.",
-    acc: "#1E9AD7",
+    tag: "Automatización industrial",
+    titulo: "Robots y automatización para empresas",
+    texto: "Sistemas que trabajan solos: control, sensores y monitoreo aplicados a procesos reales de producción.",
+    acc: "#F5811F",
     span: "md:col-span-2 md:row-span-2",
-    art: "acc-glow",
+    img: "/img/areas/automatizacion.jpg",
+    detalle: {
+      intro:
+        "No revendemos robots importados: diseñamos y construimos la solución que tu proceso necesita. Empezamos entendiendo qué se hace hoy a mano, qué cuesta y dónde se pierde tiempo, y desde ahí definimos qué conviene automatizar.",
+      items: [
+        "Automatización de procesos repetitivos",
+        "Sistemas de control con microcontroladores y PLC",
+        "Sensórica industrial y adquisición de datos",
+        "Monitoreo remoto por IoT con tableros en vivo",
+        "Brazos y mecanismos a medida",
+        "Integración con los sistemas que ya usas",
+      ],
+      entrega:
+        "Entregamos el equipo funcionando, la documentación técnica y la capacitación de tu personal para operarlo.",
+    },
   },
   {
     tag: "Software",
     titulo: "Plataformas y sistemas a medida",
-    texto: "Aplicaciones web, sistemas académicos y administrativos, bases de datos, autenticación y automatización de procesos.",
+    texto: "Aplicaciones web, sistemas de gestión, bases de datos y automatización de procesos administrativos.",
     acc: "#5E2D8E",
     span: "md:col-span-2",
-    art: "hatch",
+    img: "/img/areas/software.jpg",
+    detalle: {
+      intro:
+        "Desarrollamos el sistema que tu operación necesita cuando el software genérico no alcanza. Tenemos plataformas propias en producción, no solo portafolio.",
+      items: [
+        "Sistemas de gestión y administrativos",
+        "Plataformas académicas con perfiles y permisos",
+        "Bases de datos y seguridad por roles",
+        "Reportes y generación automática de documentos",
+        "Integraciones con servicios existentes",
+        "Comercio electrónico",
+      ],
+      entrega:
+        "Sistema desplegado, con capacitación de uso y acompañamiento durante la puesta en marcha.",
+    },
   },
   {
     tag: "IA",
@@ -133,31 +170,99 @@ export const BENTO = [
     texto: "Problema → datos → algoritmo → sistema → resultado.",
     acc: "#43B02A",
     span: "",
-    art: "dots",
+    img: "/img/areas/ia.jpg",
+    detalle: {
+      intro:
+        "IA puesta a resolver un problema concreto y medible, no como palabra de moda. Si un script sencillo resuelve tu caso, te lo decimos.",
+      items: [
+        "Visión artificial para conteo, inspección y control de calidad",
+        "Chatbots y asistentes para atención al cliente",
+        "Análisis de datos y detección de patrones",
+        "Automatización de tareas repetitivas",
+        "IA integrada a dispositivos y robótica",
+      ],
+      entrega: "Prueba de concepto medible antes de comprometerte con el desarrollo completo.",
+    },
   },
   {
     tag: "Fabricación",
     titulo: "Diseño e impresión 3D",
-    texto: "Del modelo digital al objeto físico.",
+    texto: "Del modelo digital a la pieza funcional.",
     acc: "#F5811F",
     span: "",
-    art: "acc-glow",
+    img: "/img/areas/impresion3d.jpg",
+    detalle: {
+      intro:
+        "Diseñamos y fabricamos las piezas que no se consiguen en el mercado, o que salen más caras importadas que hechas aquí.",
+      items: [
+        "Diseño 3D y CAD desde cero",
+        "Impresión de prototipos y piezas funcionales",
+        "Repuestos y piezas descontinuadas",
+        "Carcasas, soportes y mecanismos",
+        "Mantenimiento y reparación de impresoras 3D",
+      ],
+      entrega: "Pieza física entregada, con el archivo digital por si necesitas reproducirla después.",
+    },
   },
   {
     tag: "Electrónica · IoT",
     titulo: "Del circuito al sistema",
-    texto: "Microcontroladores, sensores, actuadores, comunicaciones inalámbricas y sistemas embebidos conectados.",
-    acc: "#43B02A",
+    texto: "Microcontroladores, sensores, comunicaciones inalámbricas y dispositivos conectados.",
+    acc: "#1E9AD7",
     span: "md:col-span-2",
-    art: "dots",
+    img: "/img/areas/electronica.jpg",
+    detalle: {
+      intro:
+        "Electrónica a medida cuando el equipo comercial no hace exactamente lo que necesitas. Diseñamos, programamos y probamos hasta que funciona en campo.",
+      items: [
+        "Diseño de circuitos y sistemas embebidos",
+        "Sensores de temperatura, presencia, nivel, consumo",
+        "Comunicación inalámbrica y protocolos industriales",
+        "Monitoreo remoto con alertas automáticas",
+        "Cronometría y sistemas de medición de precisión",
+      ],
+      entrega: "Dispositivo funcionando en tu instalación, con planos y documentación.",
+    },
+  },
+  {
+    tag: "Educación tecnológica",
+    titulo: "Centro de robótica educativa",
+    texto: "Programas por niveles para niños, jóvenes y adultos, siempre construyendo proyectos propios.",
+    acc: "#1E9AD7",
+    span: "",
+    img: "/img/areas/educacion.jpg",
+    detalle: {
+      intro:
+        "Formación desde el primer circuito hasta sistemas autónomos con inteligencia artificial. Nuestros equipos compiten desde 2017.",
+      items: [
+        "Cinco niveles progresivos de formación",
+        "Club de robótica y preparación para competencias",
+        "Talleres vacacionales",
+        "Programas para niños, jóvenes y adultos",
+        "Nivelación en matemáticas, física y programación",
+      ],
+      entrega: "El estudiante termina con proyectos propios construidos, no con un certificado de asistencia.",
+    },
   },
   {
     tag: "Instituciones",
     titulo: "Makerspaces y capacitación docente",
-    texto: "Llevamos la tecnología dentro de tu institución.",
-    acc: "#1E9AD7",
+    texto: "Llevamos la tecnología dentro de tu institución y formamos al equipo que la sostiene.",
+    acc: "#43B02A",
     span: "",
-    art: "hatch",
+    img: "/img/areas/makerspace.jpg",
+    detalle: {
+      intro:
+        "Montamos el espacio, el equipamiento y el currículo, y capacitamos a los docentes para que el programa siga funcionando cuando nos vamos.",
+      items: [
+        "Diseño y montaje de makerspaces",
+        "Equipamiento y selección de herramienta",
+        "Currículo integrado al plan académico",
+        "Capacitación docente en robótica, 3D e IA",
+        "Programas curriculares y extracurriculares",
+      ],
+      entrega: "Espacio operativo y equipo docente capacitado para sostenerlo de forma autónoma.",
+    },
   },
   {
     tag: "Servicios",
@@ -165,7 +270,19 @@ export const BENTO = [
     texto: "Diagnóstico, instalación, configuración y asesoría técnica.",
     acc: "#5E2D8E",
     span: "",
-    art: "acc-glow",
+    img: "/img/areas/soporte.jpg",
+    detalle: {
+      intro:
+        "Servicio técnico y videovigilancia para quienes necesitan que la tecnología simplemente funcione.",
+      items: [
+        "Videovigilancia CCTV e integración con IA",
+        "Diagnóstico, mantenimiento y reparación",
+        "Instalación y configuración de equipos",
+        "Suministro de equipamiento tecnológico",
+        "Asesoría tecnológica para proyectos",
+      ],
+      entrega: "Sistema instalado y funcionando, con soporte posterior.",
+    },
   },
 ];
 
@@ -234,12 +351,35 @@ export const TRAYECTORIA = [
   { yr: "2021", ev: "Tercer lugar en el ranking nacional de equipos", pl: "Ranking Ecuador · referencia externa", m: "bg-fb-green" },
 ];
 
+/* ─────────────────────────────────────────────────────────────
+   PROYECTOS
+
+   Cada tarjeta puede mostrar un VÍDEO corto o una IMAGEN.
+   Los archivos ya están apuntados con su nombre definitivo: basta
+   con guardarlos en la carpeta indicada y aparecen solos.
+
+   VÍDEOS  →  public/videos/
+       sistema.mp4      Pantallas del panel de gestión
+       tienda.mp4       Navegación por ToboTech
+       torneo.mp4       Cronómetro y marcador en vivo
+       robots.mp4       Robots compitiendo en la pista
+
+   PÓSTERES (primer fotograma, evita el parpadeo)  →  public/img/proyectos/
+       sistema.jpg   tienda.jpg   torneo.jpg   robots.jpg
+
+   Mientras falte un archivo, la tarjeta muestra el marcador de
+   degradado: no se rompe ni queda en negro.
+
+   Vídeos de 5 a 10 segundos, sin audio, menos de 1 MB. Para comprimir:
+   ffmpeg -i original.mp4 -vf scale=1100:-2 -crf 31 -an -movflags +faststart salida.mp4
+   ───────────────────────────────────────────────────────────── */
 export const PROYECTOS = [
   {
     titulo: "Sistema Académico",
     label: "Sistema\nAcadémico",
-    media: null, // ← pon aquí "/img/proyectos/sistema.jpg" cuando tengas la captura
     acc: "#1E9AD7",
+    video: "/videos/sistema.mp4",
+    poster: "/img/proyectos/sistema.jpg",
     texto:
       "Plataforma web para gestionar procesos educativos con perfiles separados de administrador, docente y estudiante, autenticación y generación de documentos.",
     stack: ["JavaScript", "Supabase", "Auth", "Base de datos", "PDF"],
@@ -247,8 +387,9 @@ export const PROYECTOS = [
   {
     titulo: "ToboTech",
     label: "ToboTech\nStore",
-    media: null, // ← "/img/proyectos/tobotech.jpg"
     acc: "#F5811F",
+    video: "/videos/tienda.mp4",
+    poster: "/img/proyectos/tienda.jpg",
     texto:
       "Tienda tecnológica especializada en electrónica y robótica, con catálogo por categorías, carrito de compras y autenticación de usuarios.",
     stack: ["E-commerce", "Supabase", "Carrito", "Interfaz responsive"],
@@ -256,10 +397,9 @@ export const PROYECTOS = [
   {
     titulo: "Cronometría IoT para torneos",
     label: "Torneos\nIoT",
-    video: "/videos/taller.mp4",
-    poster: "/img/taller-poster.jpg",
     acc: "#43B02A",
-    video: "/media/promo-fractalbots.mp4",
+    video: "/videos/torneo.mp4",
+    poster: "/img/proyectos/torneo.jpg",
     texto:
       "Sistema de tiempos en tiempo real para competencias de robótica: sensores en pista, publicación por MQTT y marcador en vivo.",
     stack: ["ESP32", "MQTT", "Marcador en vivo", "Automatización"],
@@ -267,8 +407,9 @@ export const PROYECTOS = [
   {
     titulo: "Robots de competencia",
     label: "Robots de\ncompetencia",
-    media: null, // ← "/img/proyectos/robots.jpg"
     acc: "#5E2D8E",
+    video: "/videos/robots.mp4",
+    poster: "/img/proyectos/robots.jpg",
     texto:
       "Mini Sumo, seguidores de línea, robot soccer y plataformas móviles autónomas diseñadas, impresas y programadas por nuestros estudiantes.",
     stack: ["Mecatrónica", "Impresión 3D", "Sensores", "Control"],

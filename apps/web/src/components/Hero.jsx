@@ -5,7 +5,8 @@ import { useGSAP } from "@gsap/react";
 import Button from "./Button";
 import Particles from "./Particles";
 import { ENLACES, HERO_TAGS } from "../data/content";
-import { isTouch, lerp, prefersReducedMotion } from "../lib/hooks";
+import { prefersReducedMotion } from "../lib/hooks";
+import { usePointerWhenVisible } from "../lib/pointer";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -20,29 +21,16 @@ export default function Hero() {
     if (el && !layers.current.includes(el)) layers.current.push(el);
   };
 
-  /* Parallax de ratón por capas */
+  /* Parallax de ratón por capas (bucle compartido, pausado fuera de pantalla) */
   useEffect(() => {
-    if (isTouch() || prefersReducedMotion()) return;
-    let tx = 0, ty = 0, cx = 0, cy = 0, raf;
-    const move = (e) => {
-      tx = (e.clientX / window.innerWidth - 0.5) * 2;
-      ty = (e.clientY / window.innerHeight - 0.5) * 2;
-    };
-    const loop = () => {
-      cx = lerp(cx, tx, 0.07);
-      cy = lerp(cy, ty, 0.07);
+    const el = root.current;
+    if (!el) return;
+    return usePointerWhenVisible(el, (cx, cy) => {
       layers.current.forEach((l) => {
         const d = parseFloat(l.dataset.depth || 0);
         l.style.transform = `translate3d(${-cx * d}px, ${-cy * d}px, 0)`;
       });
-      raf = requestAnimationFrame(loop);
-    };
-    window.addEventListener("mousemove", move, { passive: true });
-    loop();
-    return () => {
-      window.removeEventListener("mousemove", move);
-      cancelAnimationFrame(raf);
-    };
+    });
   }, []);
 
   /* Scroll: la ventana se abre y el vídeo hace zoom-out desde dentro */
@@ -55,32 +43,40 @@ export default function Hero() {
       }
       const small = window.innerWidth < 760 ? SMALL_MOBILE : SMALL;
       gsap.set("#hero-frame", { clipPath: small });
-      gsap.set("#hero-video", { scale: 1.32 });
+      gsap.set("#hero-video", { scale: 1.14 });
 
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: "#hero-scroll",
+          trigger: root.current,
           start: "top top",
           end: "bottom bottom",
-          scrub: 0.7,
+          scrub: 0.5,
+          invalidateOnRefresh: true,
         },
       });
 
-      tl.to("#hero-frame", { clipPath: FULL, ease: "power1.inOut" }, 0)
-        /* el vídeo empieza muy acercado y se aleja mientras la ventana crece */
-        .to("#hero-video", { scale: 1, ease: "power1.inOut" }, 0)
-        .fromTo("#frame-text", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, ease: "power1.out" }, 0)
-        .to("#frame-text", { opacity: 0, y: -30, ease: "none" }, 0.72)
-        .to("#hero-content", { opacity: 0, y: -80, ease: "none" }, 0)
-        .to("#hero-bg", { opacity: 0, ease: "none" }, 0)
-        .fromTo("#hero-veil", { opacity: 0.75 }, { opacity: 1, ease: "none" }, 0)
-        .to("#scroll-hint", { opacity: 0, duration: 0.15 }, 0);
+      /* Los tiempos están escalonados a propósito: el titular de la izquierda
+         debe haberse ido ANTES de que aparezca el de la ventana, o los dos
+         textos se cruzan y se leen encima uno del otro. */
+      tl.to("#hero-frame", { clipPath: FULL, ease: "power1.inOut", duration: 1 }, 0)
+        /* el vídeo empieza acercado y se aleja mientras la ventana crece */
+        .to("#hero-video", { scale: 1, ease: "power1.inOut", duration: 1 }, 0)
+        .to("#hero-content", { opacity: 0, y: -80, ease: "power1.in", duration: 0.34 }, 0)
+        .to("#hero-bg", { opacity: 0, ease: "none", duration: 0.5 }, 0)
+        .to("#scroll-hint", { opacity: 0, duration: 0.12 }, 0)
+        .fromTo(
+          "#frame-text",
+          { scale: 0.62, opacity: 0 },
+          { scale: 1, opacity: 1, ease: "power2.out", duration: 0.46 },
+          0.42
+        )
+        .fromTo("#hero-veil", { opacity: 0.7 }, { opacity: 1, ease: "none", duration: 1 }, 0);
     },
     { scope: root }
   );
 
   return (
-    <div id="hero-scroll" ref={root} className="relative h-[240vh]">
+    <div id="hero-scroll" ref={root} className="relative h-[150vh]">
       <section className="sticky top-0 h-svh overflow-hidden bg-ink">
         {/* ---------- fondo: rejilla, halos y átomos ---------- */}
         <div id="hero-bg" className="absolute inset-0">

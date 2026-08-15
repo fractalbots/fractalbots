@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import AnimatedTitle from "./AnimatedTitle";
 import Reveal from "./Reveal";
 import { PROYECTOS } from "../data/content";
@@ -42,8 +42,34 @@ function ProyectoCard({ p }) {
     };
   }, []);
 
-  const hasVideo = Boolean(p.video);
-  const hasImage = Boolean(p.media);
+  /* Comprobamos si el archivo existe antes de montar el <video>.
+     Usar el evento onError no sirve: también se dispara cuando el navegador
+     no puede decodificar el formato, y entonces perderíamos un vídeo válido.
+     Con una petición HEAD distinguimos "no está el archivo" de "no se puede
+     reproducir": si falta, cae al marcador; si está, se monta y el póster
+     cubre cualquier problema de reproducción. */
+  const [videoOk, setVideoOk] = useState(false);
+  const [imgOk, setImgOk] = useState(Boolean(p.media));
+
+  useEffect(() => {
+    if (!p.video) return;
+    let vivo = true;
+    fetch(p.video, { method: "HEAD" })
+      .then((r) => {
+        // No basta con mirar r.ok: al ser una SPA, el servidor devuelve
+        // index.html con código 200 para cualquier ruta que no exista.
+        // El tipo de contenido es lo que distingue un vídeo real de esa página.
+        const tipo = r.headers.get("content-type") || "";
+        if (vivo) setVideoOk(r.ok && tipo.startsWith("video"));
+      })
+      .catch(() => vivo && setVideoOk(false));
+    return () => {
+      vivo = false;
+    };
+  }, [p.video]);
+
+  const hasVideo = Boolean(p.video) && videoOk;
+  const hasImage = Boolean(p.media) && imgOk;
 
   return (
     <article
@@ -76,6 +102,7 @@ function ProyectoCard({ p }) {
               src={p.media}
               alt={p.titulo}
               loading="lazy"
+              onError={() => setImgOk(false)}
               className="absolute inset-0 h-full w-full object-cover will-change-transform"
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,10,17,.1),rgba(7,10,17,.6))]" />
