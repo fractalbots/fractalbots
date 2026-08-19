@@ -5,6 +5,7 @@ import {
 } from "./api";
 import { Torneos, InscripcionPublica } from "./Torneos";
 import { Portal } from "./Portal";
+import { Horarios } from "./Horarios";
 
 
 /* ============================================================
@@ -232,6 +233,7 @@ export default function App() {
     { id: "docentes", label: "Docentes", icon: "✦" },
     { id: "clientes", label: "Clientes", icon: "◇" },
     { id: "cursos", label: "Cursos", icon: "▤" },
+    { id: "horarios", label: "Horarios", icon: "◷" },
     { id: "certificados", label: "Certificados", icon: "❖" },
     { id: "formularios", label: "Formularios", icon: "▦" },
     { id: "torneos", label: "Torneos", icon: "🏆" },
@@ -302,6 +304,7 @@ export default function App() {
         {vistaValida === "dashboard" && <Dashboard />}
         {ENTITIES[vistaValida] && <ResourceView key={vistaValida} entityKey={vistaValida} config={ENTITIES[vistaValida]} />}
         {vistaValida === "certificados" && <Certificados />}
+        {vistaValida === "horarios" && <Horarios />}
         {vistaValida === "formularios" && <Formularios />}
         {vistaValida === "torneos" && <Torneos />}
         {vistaValida === "torneo" && <Torneo />}
