@@ -4,6 +4,7 @@ import {
   apiInsertMinimal, apiRpc, authHeaders, setToken,
 } from "./api";
 import { Torneos, InscripcionPublica } from "./Torneos";
+import { Portal } from "./Portal";
 
 
 /* ============================================================
@@ -222,7 +223,10 @@ export default function App() {
   const torneoSlug = params.get("torneo");
   if (torneoSlug) return <><Styles /><InscripcionPublica slug={torneoSlug} /></>;
 
-  const nav = [
+  /* El menú se arma según el rol del perfil. El RLS de Supabase ya impide
+     que un estudiante lea datos ajenos, pero la barra lateral tampoco debe
+     ofrecerle módulos administrativos: la restricción se ve, no solo se aplica. */
+  const NAV_ADMIN = [
     { id: "dashboard", label: "Dashboard", icon: "◉" },
     { id: "estudiantes", label: "Estudiantes", icon: "◈" },
     { id: "docentes", label: "Docentes", icon: "✦" },
@@ -233,10 +237,32 @@ export default function App() {
     { id: "torneos", label: "Torneos", icon: "🏆" },
     { id: "torneo", label: "Torneo en vivo", icon: "⏱" },
   ];
+  const NAV_DOCENTE = [
+    { id: "portal", label: "Mi portal", icon: "◉" },
+    { id: "torneos", label: "Torneos", icon: "🏆" },
+    { id: "torneo", label: "Torneo en vivo", icon: "⏱" },
+  ];
+  const NAV_ESTUDIANTE = [
+    { id: "portal", label: "Mi portal", icon: "◉" },
+  ];
 
-  if (!session) return <><Styles /><Login onLogin={setSession} /></>;
+  const nav =
+    session?.rol === "admin" ? NAV_ADMIN :
+    session?.rol === "docente" ? NAV_DOCENTE :
+    NAV_ESTUDIANTE;
+
+  function entrar(perfil) {
+    setSession(perfil);
+    setView(perfil?.rol === "admin" ? "dashboard" : "portal");
+  }
+
+  if (!session) return <><Styles /><Login onLogin={entrar} /></>;
 
   function salir() { logout(); setSession(null); setView("dashboard"); }
+
+  /* Cinturón de seguridad: si por cualquier vía la vista activa no pertenece
+     al menú del rol, se cae al primer módulo permitido. */
+  const vistaValida = nav.some((n) => n.id === view) ? view : nav[0].id;
 
   return (
     <div className="fb-app">
@@ -252,7 +278,7 @@ export default function App() {
         </div>
         <nav>
           {nav.map((n) => (
-            <button key={n.id} className={`fb-nav-item ${view === n.id ? "active" : ""}`} onClick={() => setView(n.id)}>
+            <button key={n.id} className={`fb-nav-item ${vistaValida === n.id ? "active" : ""}`} onClick={() => setView(n.id)}>
               <span className="fb-nav-icon">{n.icon}</span>
               {n.label}
             </button>
@@ -272,12 +298,13 @@ export default function App() {
       </aside>
 
       <main className="fb-main">
-        {view === "dashboard" && <Dashboard />}
-        {ENTITIES[view] && <ResourceView key={view} entityKey={view} config={ENTITIES[view]} />}
-        {view === "certificados" && <Certificados />}
-        {view === "formularios" && <Formularios />}
-        {view === "torneos" && <Torneos />}
-        {view === "torneo" && <Torneo />}
+        {vistaValida === "portal" && <Portal session={session} onCertificado={openCertificado} />}
+        {vistaValida === "dashboard" && <Dashboard />}
+        {ENTITIES[vistaValida] && <ResourceView key={vistaValida} entityKey={vistaValida} config={ENTITIES[vistaValida]} />}
+        {vistaValida === "certificados" && <Certificados />}
+        {vistaValida === "formularios" && <Formularios />}
+        {vistaValida === "torneos" && <Torneos />}
+        {vistaValida === "torneo" && <Torneo />}
       </main>
     </div>
   );
